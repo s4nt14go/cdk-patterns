@@ -72,8 +72,8 @@ export class TheBigFanStack extends cdk.Stack {
 
     // Any other status queue lambda
     const sqsAnyOtherStatusSubscribeLambda = new lambda.Function(this, 'SQSAnyOtherStatusSubscribeLambdaHandler', {
-      runtime: lambda.Runtime.NODEJS_12_X, 
-      code: lambda.Code.fromAsset('lambda-fns/subscribe'), 
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset('lambda-fns/subscribe'),
       handler: 'anyOtherStatus.handler'
     });
     anyOtherStatusQueue.grantConsumeMessages(sqsAnyOtherStatusSubscribeLambda);
@@ -82,7 +82,7 @@ export class TheBigFanStack extends cdk.Stack {
     /**
      * API Gateway Creation
      * This is complicated because it transforms the incoming json payload into a query string url
-     * this url is used to post the payload to sns without a lambda inbetween 
+     * this url is used to post the payload to sns without a lambda inbetween
      */
     let gateway = new apigw.RestApi(this, 'theBigFanAPI', {
       deployOptions: {
@@ -105,7 +105,7 @@ export class TheBigFanStack extends cdk.Stack {
       modelName: 'ResponseModel',
       schema: { 'schema': apigw.JsonSchemaVersion.DRAFT4, 'title': 'pollResponse', 'type': apigw.JsonSchemaType.OBJECT, 'properties': { 'message': { 'type': apigw.JsonSchemaType.STRING } } }
     });
-    
+
     // We define the JSON Schema for the transformed error response
     const errorResponseModel = gateway.addModel('ErrorResponseModel', {
       contentType: 'application/json',
@@ -143,7 +143,7 @@ export class TheBigFanStack extends cdk.Stack {
             responseTemplates: {
               // Just respond with a generic message
               // Check https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html
-              'application/json': JSON.stringify({ message: 'message added to topic'})
+              'application/json': JSON.stringify({ message: '$util.escapeJavaScript($input.body)'})
             }
           },
           {
