@@ -1,6 +1,6 @@
 # The Big Fan
 
-![architecture](../img/the-big-fan-arch.png)
+![architecture](doc/the-big-fan-arch.png)
 
 This is an example cdk stack to deploy "The Big Fan" from Heitor Lessa as seen in these [re:Invent slides](https://d1.awsstatic.com/events/reinvent/2019/REPEAT_3_Serverless_architectural_patterns_and_best_practices_ARC307-R3.pdf) or this [Youtube Recording](https://www.youtube.com/watch?v=9IYpGTS7Jy0) from [Heitor Lessa](https://twitter.com/heitor_lessa).
 
@@ -17,7 +17,7 @@ To send to the second lambda
 `{ "message": "hello", "status": "not created" }`
 
 ### Postman Example
-![postman](../img/postman.png)
+![postman](doc/postman.png)
 
 ## Useful commands
 
