@@ -31,6 +31,7 @@ Now wait 60 seconds and try again, you should see the 10 second wait return
 
 ## Useful commands
 
+ * `npx cdkp init the-eventbridge-circuit-breaker` installs this pattern 
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
