@@ -19,6 +19,54 @@ The lambda queries the dynamoDB for errors added in the last 60 seconds for this
 The lambda queries the dynamoDB for errors added in the last 60 seconds for this service. In this scenario the number found is greater than our threshold so the lambda immediately responds with a failure rather than calling the real service.
 ![Architecture](img/arch_closed.png)
 
+### Code snippets
+
+Lambda `webserviceIntegrationLambda` publishing the event:
+```typescript
+var params = {
+      Entries: [
+        {
+          DetailType: 'httpcall',
+          EventBusName: 'default',
+          Source: 'cdkpatterns.eventbridge.circuitbreaker',
+          Time: new Date(),
+          // Main event body
+          Detail: JSON.stringify({
+            status: 'fail',
+            siteUrl: 'www.google.com',
+            errorType: 'service timeout exception'
+          })
+        }
+      ]
+    };
+const result = await eventbridge.putEvents(params).promise();
+```
+Event rule to route failures to lambda `errorLambda`
+```typescript
+const webserviceErrorRule = new events.Rule(this, 'webserviceErrorRule', {
+      description: 'Failed Webservice Call',
+      eventPattern: {
+        source: ['cdkpatterns.eventbridge.circuitbreaker'],
+        detailType: ['httpcall'],
+        detail: {
+          status: ["fail"]
+        }
+      }
+    });
+webserviceErrorRule.addTarget(new events_targets.LambdaFunction(errorLambda));
+```
+Relevant parts from the event arriving to lambda `errorLambda`
+```json5
+{
+  'detail-type': 'httpcall',
+  source: 'cdkpatterns.eventbridge.circuitbreaker',
+  detail: {
+    status: 'fail',
+    siteUrl: 'www.google.com',
+    errorType: 'service timeout exception'
+  }
+}
+```
 ## When You Would Use This Pattern
 
 When integrating with an external webservice via a lambda that is not stable. This will save you execution costs, it will also improve end user experience because not only are they still receiving an error without this but they have to wait the full 10 seconds for it.

@@ -5,7 +5,7 @@ import dynamodb = require('@aws-cdk/aws-dynamodb');
 import iam = require('@aws-cdk/aws-iam');
 import events = require('@aws-cdk/aws-events');
 import events_targets = require('@aws-cdk/aws-events-targets');
-import { GlobalSecondaryIndexProps } from '@aws-cdk/aws-dynamodb';
+import { GlobalSecondaryIndexProps, BillingMode } from '@aws-cdk/aws-dynamodb';
 import { Duration } from '@aws-cdk/core';
 
 export class TheEventbridgeCircuitBreakerStack extends cdk.Stack {
@@ -18,16 +18,17 @@ export class TheEventbridgeCircuitBreakerStack extends cdk.Stack {
     const table = new dynamodb.Table(this, 'CircuitBreaker', {
       partitionKey: { name: 'RequestID', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'ExpirationTime', type: dynamodb.AttributeType.NUMBER },
-      timeToLiveAttribute: 'ExpirationTime'
+      timeToLiveAttribute: 'ExpirationTime',
+      billingMode: BillingMode.PAY_PER_REQUEST
     });
-    
+
     // Add index to let us query on siteUrl
     let secondaryIndex:GlobalSecondaryIndexProps = {
       indexName: 'UrlIndex',
       partitionKey: { name: 'SiteUrl', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'ExpirationTime', type: dynamodb.AttributeType.NUMBER }
     }
-    
+
     table.addGlobalSecondaryIndex(secondaryIndex);
 
     // defines an Integration Lambda to call our failing web service
