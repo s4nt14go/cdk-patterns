@@ -1,6 +1,6 @@
 # The Simple GraphQL Service
 
-![architecture](../img/architecture.png)
+![architecture](img/architecture.png)
 
 This is an example CDK stack to deploy The Simple [GraphQL](https://graphql.org/) Service inspired by [Thorsten Hoeger](https://twitter.com/hoegertn)'s contributions to the [CDK AppSync Module example]( https://docs.aws.amazon.com/cdk/api/latest/docs/aws-appsync-readme.html#usage-example)
 
@@ -17,7 +17,7 @@ This is the most basic of [AppSync](https://aws.amazon.com/appsync/) implementat
 
 1. After CDK Deploy, capture outputs from the log.
 
-```json
+```text
 TheSimpleGraphqlServiceStack: deploying...
 TheSimpleGraphqlServiceStack: creating CloudFormation changeset...
 
@@ -34,14 +34,14 @@ TheSimpleGraphqlServiceStack.Endpoint = https://<endpoint URL>.appsync-api.us-ea
 * x-api-key = 'your API Key'
 * Content-Type = application/graphql
 
-![postman](../img/postman-headers.png)
+![postman](img/postman-headers.png)
 
 4. Execute Mutations and Queries to exercice resolvers to dynamo and Lambda datasources
 
-![postman](../img/postman-queries.png)
+![postman](img/postman-queries.png)
 
-```json
-// Inserts to Dynamo
+```graphql
+# Inserts to Dynamo
 mutation add {
   addCustomer(customer: { name: "CDKPatterns"}) {
     id
@@ -49,12 +49,12 @@ mutation add {
   }
 }
 
-// Queries the Dynamo DB
+# Queries the Dynamo DB
 query getCustomers {
   getCustomers{id name}
 }
 
-// Executes the Lambda
+# Executes the Lambda
 query getLoyalty {
   getLoyaltyLevel { level }
 }
@@ -62,6 +62,7 @@ query getLoyalty {
 
 ## Useful commands
 
+ * `npx cdkp init the-simple-graphql-service`   installs this pattern
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
