@@ -1,4 +1,4 @@
-import { expect as expectCDK, matchTemplate, haveResourceLike, MatchStyle } from '@aws-cdk/assert';
+import { expect as expectCDK, haveResourceLike } from '@aws-cdk/assert';
 import * as cdk from '@aws-cdk/core';
 import TheSimpleGraphQLService = require('../lib/the-simple-graphql-service-stack');
 const assert_1 = require("@aws-cdk/assert");
@@ -109,18 +109,6 @@ test('AppSync Mutation Resolver for addCustomer', () => {
   // THEN
   expectCDK(stack).to(haveResourceLike("AWS::AppSync::Resolver", {
     "FieldName": "addCustomer",
-    "TypeName": "Mutation"
-  }
-  ));
-});
-
-test('AppSync Mutation Resolver for saveCustomer', () => {
-  const app = new cdk.App();
-  // WHEN
-  const stack = new TheSimpleGraphQLService.TheSimpleGraphQLServiceStack(app, 'MyTestStack');
-  // THEN
-  expectCDK(stack).to(haveResourceLike("AWS::AppSync::Resolver", {
-    "FieldName": "saveCustomerWithFirstOrder",
     "TypeName": "Mutation"
   }
   ));
