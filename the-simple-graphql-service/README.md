@@ -71,7 +71,7 @@ curl --request POST $ENDPOINT \
 --header "x-api-key: ${API_KEY}" \
 --data-raw $QUERY
  ```
-..or replace the last part for shortening query variable:
+...or replace the last part for shortening query variable:
 ```shell script
 Q="mutation MyMutation {addCustomer(customer: {name: \\\"John\\\"}) {id  name}}"
 curl --request POST $ENDPOINT \
