@@ -60,6 +60,27 @@ query getLoyalty {
 }
 ```
 
+You can also query with curl:
+
+```shell script
+ENDPOINT=https://<your api id>.appsync-api.us-east-1.amazonaws.com/graphql
+API_KEY=<your api key>
+QUERY='{"query":"mutation MyMutation {addCustomer(customer: {name: \"John\"}) {id  name}}"'
+curl --request POST $ENDPOINT \
+--header "Content-Type: application/graphql" \
+--header "x-api-key: ${API_KEY}" \
+--data-raw $QUERY
+ ```
+..or replace the last part for shortening query variable:
+```shell script
+Q="mutation MyMutation {addCustomer(customer: {name: \\\"John\\\"}) {id  name}}"
+curl --request POST $ENDPOINT \
+--header "Content-Type: application/graphql" \
+--header "x-api-key: ${API_KEY}" \
+--data-raw '{"query":"'"$Q"'"}'
+```
+
+
 ## Useful commands
 
  * `npx cdkp init the-simple-graphql-service`   installs this pattern
