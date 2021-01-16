@@ -26,7 +26,7 @@ test('AppSync Endpoint Created', () => {
   const stack = new TheSimpleGraphQLService.TheSimpleGraphQLServiceStack(app, 'MyTestStack');
   // THEN
   expectCDK(stack).to(haveResourceLike("AWS::AppSync::GraphQLApi", {
-    "Name": "demoapi"
+    "Name": "the-simple-graphql-service"
   }
   ));
 });
