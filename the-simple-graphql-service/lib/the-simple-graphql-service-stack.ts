@@ -12,13 +12,13 @@ export class TheSimpleGraphQLServiceStack extends cdk.Stack {
      * Create a new AppSync GraphQL API
      */
     const api = new GraphqlApi(this, 'Api', {
-      name: `demoapi`,
+      name: `the-simple-graphql-service`,
       logConfig: {
         fieldLogLevel: FieldLogLevel.ALL,
       },
       schema: new Schema({ filePath: join('__dirname', '/../', 'schema/schema.graphql') }),
     });
-    
+
     const apiKey = new CfnApiKey(this, 'the-simple-graphql-service-api-key', {
       apiId: api.apiId
     });
@@ -65,7 +65,7 @@ export class TheSimpleGraphQLServiceStack extends cdk.Stack {
       responseMappingTemplate: MappingTemplate.dynamoDbResultItem(),
     });
 
-    // Mutation Resolver for updating an exisiting Customer
+    // Mutation Resolver for updating an existing Customer
     customerDS.createResolver({
       typeName: 'Mutation',
       fieldName: 'saveCustomer',
@@ -75,21 +75,7 @@ export class TheSimpleGraphQLServiceStack extends cdk.Stack {
       responseMappingTemplate: MappingTemplate.dynamoDbResultItem(),
     });
 
-    // Mutation resolver for creating a new customer along with their first order 
-    customerDS.createResolver({
-      typeName: 'Mutation',
-      fieldName: 'saveCustomerWithFirstOrder',
-      requestMappingTemplate: MappingTemplate.dynamoDbPutItem(
-        PrimaryKey
-          .partition('order').auto()
-          .sort('customer').is('customer.id'),
-        Values
-          .projecting('order')
-          .attribute('referral').is('referral')),
-      responseMappingTemplate: MappingTemplate.dynamoDbResultItem(),
-    });
-
-    // Mutation Resolver for deleting an exisiting Customer
+    // Mutation Resolver for deleting an existing Customer
     customerDS.createResolver({
       typeName: 'Mutation',
       fieldName: 'removeCustomer',
@@ -116,7 +102,7 @@ export class TheSimpleGraphQLServiceStack extends cdk.Stack {
       requestMappingTemplate: MappingTemplate.lambdaRequest(),
       responseMappingTemplate: MappingTemplate.lambdaResult(),
     });
-    
+
     // GraphQL API Endpoint
     new cdk.CfnOutput(this, 'Endpoint', {
       value: api.graphqlUrl
