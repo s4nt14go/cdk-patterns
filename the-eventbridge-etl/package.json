@@ -1,0 +1,45 @@
+{
+  "name": "the-eventbridge-etl",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cdk-patterns/serverless.git"
+  },
+  "license": "MIT",
+  "bin": {
+    "the-eventbridge-etl": "bin/the-eventbridge-etl.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk",
+    "deploy": "cdk deploy '*' --require-approval 'never'"
+  },
+  "devDependencies": {
+    "@aws-cdk/assert": "1.83.0",
+    "@types/jest": "^26.0.20",
+    "@types/node": "14.14.20",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.4.4",
+    "aws-cdk": "1.83.0",
+    "ts-node": "^9.1.1",
+    "typescript": "~4.1.3"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-dynamodb": "1.83.0",
+    "@aws-cdk/aws-ec2": "1.83.0",
+    "@aws-cdk/aws-ecs": "1.83.0",
+    "@aws-cdk/aws-events": "1.83.0",
+    "@aws-cdk/aws-events-targets": "1.83.0",
+    "@aws-cdk/aws-iam": "1.83.0",
+    "@aws-cdk/aws-lambda": "1.83.0",
+    "@aws-cdk/aws-lambda-event-sources": "1.83.0",
+    "@aws-cdk/aws-logs": "1.83.0",
+    "@aws-cdk/aws-s3": "1.83.0",
+    "@aws-cdk/aws-s3-notifications": "1.83.0",
+    "@aws-cdk/aws-sqs": "1.83.0",
+    "@aws-cdk/core": "1.83.0",
+    "source-map-support": "^0.5.19"
+  }
+}
