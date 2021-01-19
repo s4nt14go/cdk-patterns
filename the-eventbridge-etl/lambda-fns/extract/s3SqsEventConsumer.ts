@@ -7,8 +7,8 @@ const eventbridge = new AWS.EventBridge()
 exports.handler = async function (event: any) {
     var ecs = new ECS({ apiVersion: '2014-11-13' });
 
-    console.log("request:", JSON.stringify(event, undefined, 2));
-    let records: any[] = event.Records;
+    console.log("event:", JSON.stringify(event, undefined, 2));
+    let Records: any[] = event.Records;
 
     //Exract variables from environment
     const clusterName = process.env.CLUSTER_NAME;
@@ -52,18 +52,18 @@ exports.handler = async function (event: any) {
     /**
      * An event can contain multiple records to process. i.e. the user could have uploaded 2 files.
      */
-    for (let index in records) {
-        let payload = JSON.parse(records[index].body);
-        console.log('processing s3 events ' + payload);
+    for (let index in Records) {
+        let body = JSON.parse(Records[index].body);
+        console.log(`event.Records[${index}].body`, body);
 
-        let s3eventRecords = payload.Records;
+        let s3eventRecords = body.Records;
 
-        console.log('records '+ s3eventRecords);
+        console.log(`event.Records[${index}].body.Records`, s3eventRecords);
 
         for (let i in s3eventRecords) {
 
             let s3event =  s3eventRecords[i];
-            console.log('s3 event '+ s3event)
+            console.log(`event.Records[${index}].body.Records[${i}]`, s3event)
 
             //Extract variables from event
             const objectKey = s3event?.s3?.object?.key;
@@ -118,7 +118,7 @@ exports.handler = async function (event: any) {
                     }
                     ]
                 };
-                
+
                 const result = await eventbridge.putEvents(eventBridgeParams).promise().catch((error: any) => {
                     throw new Error(error);
                 });

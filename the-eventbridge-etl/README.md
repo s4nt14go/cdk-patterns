@@ -39,6 +39,186 @@ After you upload that file everything should automatically start working. You sh
 
 Finally all of the data ends up in your DynamoDB table so you should be able to open it in the console and view the data after transform.
 
+After setting your bucket name in `BUCKET`, you can upload it with:
+```shell script
+aws s3 cp data-to-upload/test_data.csv s3://$BUCKET
+```
+
+## Events walk-through
+
+test_data.csv:
+```text
+ID,HouseNum,Street,Town,Zip
+1,12,Main Street,Antrim,22876
+2,23,2nd Street,Glengormley,73495
+3,45,Church Way,Ballymena,18649
+4,67,Bangor Road,Carrickfergus,86492
+5,89,Dublin Boulevard,Swords,72648
+```
+`event` received by `s3SqsEventConsumer.ts` from SQS
+```json
+{
+    "Records": [
+        {
+            "messageId": "...",
+            "receiptHandle": "...",
+            "body": "{\"Records\":[{...}]}",
+            "attributes": {
+                "ApproximateReceiveCount": "1",
+                "SentTimestamp": "1610898039495",
+                "SenderId": "...",
+                "ApproximateFirstReceiveTimestamp": "1610898039506"
+            },
+            "messageAttributes": {},
+            "md5OfBody": "...",
+            "eventSource": "aws:sqs",
+            "eventSourceARN": "arn:aws:sqs:us-east-1:..."
+        }
+    ]
+}
+```
+`event.Records[i].body.Records`:
+
+```json5
+[
+  {
+    eventVersion: '2.1',
+    eventSource: 'aws:s3',
+    awsRegion: 'us-east-1',
+    eventTime: '2021-01-17T15:40:34.743Z',
+    eventName: 'ObjectCreated:Put',
+    userIdentity: { principalId: 'AWS:...' },
+    requestParameters: { sourceIPAddress: '190.229.77.50' },
+    responseElements: {
+      'x-amz-request-id': '...',
+      'x-amz-id-2': '...'
+    },
+    s3: {
+      s3SchemaVersion: '1.0',
+      configurationId: '...',
+      bucket: {
+        name: 'theeventbridgeetlstack-landingbucket...',
+        ownerIdentity: [Object],
+        arn: 'arn:aws:s3:::theeventbridgeetlstack-landingbucket...'
+      },
+      object: {
+        key: 'test_data.csv',
+        size: 200,
+        eTag: '...',
+        sequencer: '...'
+      }
+    }
+  }
+]
+```
+`s3SqsEventConsumer.ts` runs ECS task overriding environment variables `S3_BUCKET_NAME` and `S3_OBJECT_KEY` with the former data.
+
+The task download the file uploaded to S3 and put an event in EventBridge for each row in the csv, this is how it looks like for the first row:
+```json5
+[
+    {
+        'DetailType': 's3RecordExtraction',
+        'EventBusName': 'default',
+        'Source': 'cdkpatterns.the-eventbridge-etl',
+        'Time': datetime.now(),
+        'Detail': {
+            'status': 'extracted',
+            'headers': 'ID, HouseNum, Street, Town, Zip',
+            'data': '1, 12, Main Street, Antrim, 22876'
+        }
+        
+    },
+]
+```
+As lambda `transform.ts` is the target for this EventBridge rule:
+```json5
+{
+  description: 'Data extracted from S3, Needs transformed',
+  eventPattern: {
+    source: ['cdkpatterns.the-eventbridge-etl'],
+    detailType: ['s3RecordExtraction'],
+    detail: {
+      status: ["extracted"]
+    }
+  }
+}
+``` 
+...it picks the event:
+```json5
+{
+    "version": "0",
+    "id": "...",
+    "detail-type": "s3RecordExtraction",
+    "source": "cdkpatterns.the-eventbridge-etl",
+    "time": "...",
+    "region": "us-east-1",
+    "resources": [],
+    "detail": {
+        "status": "extracted",
+        "headers": "ID,HouseNum,Street,Town,Zip",
+        "data": "1,12,Main Street,Antrim,22876"
+    }
+}
+```
+...and puts this event in EventBridge:
+```json5
+[
+  {
+    DetailType: 'transform',
+    EventBusName: 'default',
+    Source: 'cdkpatterns.the-eventbridge-etl',
+    Time: new Date(),
+    // Main event body
+    Detail: JSON.stringify({
+      status: 'transformed',
+      data: {
+        "ID": "1",
+        "HouseNum": "12",
+        "Street": "Main Street",
+        "Town": "Antrim",
+        "Zip": "22876"
+      }
+    })
+  }
+]
+```
+Similary, as lambda `load.ts` is the target for this EventBridge rule:
+```json5
+{
+  description: 'Data transformed, Needs loaded into dynamodb',
+  eventPattern: {
+    source: ['cdkpatterns.the-eventbridge-etl'],
+    detailType: ['transform'],
+    detail: {
+      status: ["transformed"]
+    }
+  }
+}
+```
+...it picks the event:
+```json5
+{
+    "version": "0",
+    "id": "...",
+    "detail-type": "transform",
+    "source": "cdkpatterns.the-eventbridge-etl",
+    "time": "...",
+    "region": "us-east-1",
+    "resources": [],
+    "detail": {
+        "status": "transformed",
+        "data": {
+            "ID": "1",
+            "HouseNum": "12",
+            "Street": "Main Street",
+            "Town": "Antrim",
+            "Zip": "22876"
+        }
+    }
+}
+```
+The whole process once the csv file was uploaded to S3 until the values are written in the DynamoDB takes around 50s.
+
 ## Useful commands
 
  * `npm run build`   compile typescript to js

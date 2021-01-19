@@ -58,11 +58,11 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
 
     /**
      * Fargate ECS Task Creation to pull data from S3
-     * 
+     *
      * Fargate is used here because if you had a seriously large file,
      * you could stream the data to fargate for as long as needed before
-     * putting the data onto eventbridge or up the memory/storage to 
-     * download the whole file. Lambda has limitations on runtime and 
+     * putting the data onto eventbridge or up the memory/storage to
+     * download the whole file. Lambda has limitations on runtime and
      * memory/storage
      */
     const vpc = new ec2.Vpc(this, 'Vpc', {
@@ -91,17 +91,13 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
     let container = taskDefinition.addContainer('AppContainer', {
       image: ecs.ContainerImage.fromAsset('container/s3DataExtractionTask'),
       logging,
-      environment: { // clear text, not for sensitive data
-        'S3_BUCKET_NAME': bucket.bucketName,
-        'S3_OBJECT_KEY': ''
-      },
     });
 
     /**
      * Lambdas
-     * 
+     *
      * These are used for 4 phases:
-     * 
+     *
      * Extract    - kicks of ecs fargate task to download data and splinter to eventbridge events
      * Transform  - takes the two comma separated strings and produces a json object
      * Load       - inserts the data into dynamodb
@@ -114,7 +110,7 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
     // defines an AWS Lambda resource to trigger our fargate ecs task
     const extractLambda = new lambda.Function(this, 'extractLambdaHandler', {
       runtime: lambda.Runtime.NODEJS_12_X,
-      code: lambda.Code.fromAsset('lambda-fns/extract'), 
+      code: lambda.Code.fromAsset('lambda-fns/extract'),
       handler: 's3SqsEventConsumer.handler',
       reservedConcurrentExecutions: LAMBDA_THROTTLE_SIZE,
       environment: {
@@ -159,7 +155,7 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset('lambda-fns/transform'),
       handler: 'transform.handler',
-      reservedConcurrentExecutions: LAMBDA_THROTTLE_SIZE, 
+      reservedConcurrentExecutions: LAMBDA_THROTTLE_SIZE,
       timeout: cdk.Duration.seconds(3)
     });
     transformLambda.addToRolePolicy(eventbridgePutPolicy);
@@ -229,5 +225,9 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
     });
 
     observeRule.addTarget(new events_targets.LambdaFunction(observeLambda));
+
+    new cdk.CfnOutput(this, 'Bucket', {
+      value: bucket.bucketName
+    });
   }
 }
