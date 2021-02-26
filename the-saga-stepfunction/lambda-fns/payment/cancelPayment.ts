@@ -3,12 +3,12 @@ const { save } = require('../lib');
 exports.handler = async function(event:any) {
   console.log("event", event);
 
-  const requestError = event.RequestHotelError && JSON.parse(event.RequestHotelError.Cause).errorMessage;
-  const confirmError = event.ConfirmHotelError && JSON.parse(event.ConfirmHotelError.Cause).errorMessage;
+  const requestError = event.RequestPaymentError && JSON.parse(event.RequestPaymentError.Cause).errorMessage;
+  const confirmError = event.ConfirmPaymentError && JSON.parse(event.ConfirmPaymentError.Cause).errorMessage;
 
   let update = {
     trip_id: event.trip_id,
-    step: 'HOTEL',
+    step: 'PAYMENT',
     action: 'UPDATE',
   };
 
@@ -20,7 +20,7 @@ exports.handler = async function(event:any) {
 
   try {
     if (Math.random() < 0.4) {
-      throw new Error("Error while canceling hotel");
+      throw new Error("Error while canceling payment");
     }
 
     await save({
@@ -36,7 +36,10 @@ exports.handler = async function(event:any) {
     });
   }
 
-  return {status: "ok"}
+
+  return {
+    status: "ok",
+  }
 };
 
-export {}
+export {};

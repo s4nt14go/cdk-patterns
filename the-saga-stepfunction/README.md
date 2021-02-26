@@ -1,4 +1,61 @@
-# The Saga Step Function
+---
+## UPDATE:
+>In this repo I made some changes to the original one, it may be convenient taking
+a look at the original readme first and then coming back here.
+
+In this modified version the word 'request' is used instead of 'reservation', all the errors that can happen in every step (request/confirm/cancel) are saved into the DynamoDB table. There are 4 possible status for every step: 'PENDING', 'CONFIRMED', 'CANCELED' and 'CANCEL_ERROR'.
+
+Following are final states of the table and workflow for some executions
+<br />
+
+### Success
+
+<pre align="center">GET to https://API_ID.execute-api.us-east-1.amazonaws.com/prod</pre>
+<p align="center">
+  <img src="doc/succeeded.png" />
+  <img src="doc/succeededWorkflow.png" />
+</p> 
+
+### Failure when requesting hotel
+
+<pre align="center">GET to https://API_ID.execute-api.us-east-1.amazonaws.com/prod?runType=failHotelReservation</pre>
+<p align="center">
+  <img src="doc/hotelRequest&cancelError.png" />
+  <img src="doc/hotelRequest&cancelErrorWorkflow.png" />
+</p>
+
+Only the row for 'HOTEL' step is saved, you can see that not only the initial hotel request sent errored, but also when trying to cancel that request, so instead of a 'CANCEL' status we get a 'CANCEL_ERROR'. The box 'CancelHotelReservation' shows green because that error is caught by a try-catch block inside the lambda, so the lambda doesn't throw an error.
+
+### Failure when requesting payment
+
+<pre align="center">GET to https://API_ID.execute-api.us-east-1.amazonaws.com/prod?runType=failPaymentConfirmation</pre>
+<p align="center">
+  <img src="doc/paymentRequest&cancelError.png" />
+  <img src="doc/paymentRequest&cancelErrorWorkflow.png" />
+</p>
+
+Apart from the error when requesting payment, we also got an error when trying to cancel the payment.
+
+### Failure when confirming payment
+
+<pre align="center">GET to https://API_ID.execute-api.us-east-1.amazonaws.com/prod?runType=failPaymentConfirmation</pre>
+<p align="center">
+  <img src="doc/paymentConfirmError.png" />
+  <img src="doc/paymentConfirmErrorWorkflow.png" />
+</p>
+
+### Failure when confirming flight
+
+<pre align="center">GET to https://API_ID.execute-api.us-east-1.amazonaws.com/prod?runType=failFlightsConfirmation</pre>
+<p align="center">
+  <img src="doc/flightConfirmError.png" />
+  <img src="doc/flightConfirmErrorWorkflow.png" />
+</p>
+
+As in this case there is an error while confirming the flight, we have to cancel the hotel and payment too. We can see that when trying to cancel the payment we got an error so its status is 'CANCEL_ERROR' instead of 'CANCELED'.
+
+---
+## ORIGINAL README: The Saga Step Function
 
 This is a pattern that I found via [Yan Cui](https://twitter.com/theburningmonk) and his 2017 [Blog Post](https://theburningmonk.com/2017/07/applying-the-saga-pattern-with-aws-lambda-and-step-functions/). 
 

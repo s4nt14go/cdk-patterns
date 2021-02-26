@@ -3,21 +3,20 @@ const { save } = require('../lib');
 exports.handler = async function(event:any) {
   console.log("event", event);
 
-  // If we passed the parameter to fail this step
-  if(event.run_type === 'failHotelConfirmation'){
-    throw new Error('Error while confirming hotel');
+  if(event.run_type === 'failPaymentConfirmation'){
+    throw new Error('Error while confirming payment');
   }
 
   await save({
     trip_id: event.trip_id,
-    step: 'HOTEL',
+    step: 'PAYMENT',
     action: 'UPDATE',
     status: 'CONFIRMED',
   });
 
   return {
-    status: "ok",
+    status: "ok"
   }
 };
 
-export {}
+export {};

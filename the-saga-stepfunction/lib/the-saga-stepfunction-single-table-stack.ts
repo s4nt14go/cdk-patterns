@@ -12,11 +12,11 @@ export class TheSagaStepfunctionSingleTableStack extends cdk.Stack {
 
     /**
      * DynamoDB Table
-     * 
+     *
      * We store Flight, Hotel and Rental Car bookings in the same table.
-     * 
+     *
      * For more help with single table DB structures see - https://www.dynamodbbook.com/
-     * 
+     *
      * pk - the trip_id e.g. 1234
      * sk - bookingtype#booking_id e.g. HOTEL#345634, FLIGHT#574576, PAYMENT#45245
      */
@@ -28,36 +28,37 @@ export class TheSagaStepfunctionSingleTableStack extends cdk.Stack {
 
     /**
      * Lambda Functions
-     * 
+     *
      * We need Booking and Cancellation functions for our 3 services
      * All functions need access to our DynamoDB table above.
-     * 
+     *
      * We also need to take payment for this trip
-     * 
+     *
      * 1) Flights
      * 2) Hotel
      * 3) Payment
      */
 
-    // 1) Flights 
-    let reserveFlightLambda = this.createLambda(this, 'reserveFlightLambdaHandler', 'flights/reserveFlight.handler', bookingsTable);
+    // 1) Flights
+    let requestFlightLambda = this.createLambda(this, 'requestFlightLambdaHandler', 'flights/requestFlight.handler', bookingsTable);
     let confirmFlightLambda = this.createLambda(this, 'confirmFlightLambdaHandler', 'flights/confirmFlight.handler', bookingsTable);
     let cancelFlightLambda = this.createLambda(this, 'cancelFlightLambdaHandler', 'flights/cancelFlight.handler', bookingsTable);
 
-    // 2) Hotel 
-    let reserveHotelLambda = this.createLambda(this, 'reserveHotelLambdaHandler', 'hotel/reserveHotel.handler', bookingsTable);
+    // 2) Hotel
+    let requestHotelLambda = this.createLambda(this, 'requestHotelLambdaHandler', 'hotel/requestHotel.handler', bookingsTable);
     let confirmHotellambda = this.createLambda(this, 'confirmHotelLambdaHandler', 'hotel/confirmHotel.handler', bookingsTable);
     let cancelHotelLambda = this.createLambda(this, 'cancelHotelLambdaHandler', 'hotel/cancelHotel.handler', bookingsTable);
 
     // 3) Payment For Holiday
-    let takePaymentLambda = this.createLambda(this, 'takePaymentLambdaHandler', 'payment/takePayment.handler', bookingsTable);
-    let refundPaymentLambda = this.createLambda(this, 'refundPaymentLambdaHandler', 'payment/refundPayment.handler', bookingsTable);
+    let requestPaymentLambda = this.createLambda(this, 'requestPaymentLambdaHandler', 'payment/requestPayment.handler', bookingsTable);
+    let confirmPaymentLambda = this.createLambda(this, 'confirmPaymentLambdaHandler', 'payment/confirmPayment.handler', bookingsTable);
+    let cancelPaymentLambda = this.createLambda(this, 'cancelPaymentLambdaHandler', 'payment/cancelPayment.handler', bookingsTable);
 
     /**
      * Saga Pattern Stepfunction
-     * 
+     *
      * Follows a strict order:
-     * 1) Reserve Flights and Hotel
+     * 1) Request Flights and Hotel
      * 2) Take Payment
      * 3) Confirm Flight and Hotel booking
      */
@@ -68,7 +69,7 @@ export class TheSagaStepfunctionSingleTableStack extends cdk.Stack {
 
 
     /**
-     * 1) Reserve Flights and Hotel
+     * 1) Request Flights and Hotel
      */
     const cancelHotelReservation = new sfn.Task(this, 'CancelHotelReservation', {
       task: new tasks.RunLambdaTask(cancelHotelLambda),
@@ -76,11 +77,11 @@ export class TheSagaStepfunctionSingleTableStack extends cdk.Stack {
     }).addRetry({maxAttempts:3}) // retry this task a max of 3 times if it fails
     .next(bookingFailed);
 
-    const reserveHotel = new sfn.Task(this, 'ReserveHotel', {
-      task: new tasks.RunLambdaTask(reserveHotelLambda),
-      resultPath: '$.ReserveHotelResult',
+    const requestHotel = new sfn.Task(this, 'RequestHotel', {
+      task: new tasks.RunLambdaTask(requestHotelLambda),
+      resultPath: '$.RequestHotelResult',
     }).addCatch(cancelHotelReservation, {
-      resultPath: "$.ReserveHotelError"
+      resultPath: "$.RequestHotelError"
     });
 
     const cancelFlightReservation = new sfn.Task(this, 'CancelFlightReservation', {
@@ -89,27 +90,34 @@ export class TheSagaStepfunctionSingleTableStack extends cdk.Stack {
     }).addRetry({maxAttempts:3}) // retry this task a max of 3 times if it fails
     .next(cancelHotelReservation);
 
-    const reserveFlight = new sfn.Task(this, 'ReserveFlight', {
-      task: new tasks.RunLambdaTask(reserveFlightLambda),
-      resultPath: '$.ReserveFlightResult',
+    const requestFlight = new sfn.Task(this, 'RequestFlight', {
+      task: new tasks.RunLambdaTask(requestFlightLambda),
+      resultPath: '$.RequestFlightResult',
     }).addCatch(cancelFlightReservation, {
-      resultPath: "$.ReserveFlightError"
+      resultPath: "$.RequestFlightError"
     });
 
     /**
      * 2) Take Payment
      */
-    const refundPayment = new sfn.Task(this, 'RefundPayment', {
-      task: new tasks.RunLambdaTask(refundPaymentLambda),
-      resultPath: '$.RefundPaymentResult',
+    const cancelPayment = new sfn.Task(this, 'CancelPayment', {
+      task: new tasks.RunLambdaTask(cancelPaymentLambda),
+      resultPath: '$.CancelPaymentResult',
     }).addRetry({maxAttempts:3}) // retry this task a max of 3 times if it fails
     .next(cancelFlightReservation);
 
-    const takePayment = new sfn.Task(this, 'TakePayment', {
-      task: new tasks.RunLambdaTask(takePaymentLambda),
-      resultPath: '$.TakePaymentResult',
-    }).addCatch(refundPayment, {
-      resultPath: "$.TakePaymentError"
+    const requestPayment = new sfn.Task(this, 'RequestPayment', {
+      task: new tasks.RunLambdaTask(requestPaymentLambda),
+      resultPath: '$.RequestPaymentResult',
+    }).addCatch(cancelPayment, {
+      resultPath: "$.RequestPaymentError"
+    });
+
+    const confirmPayment = new sfn.Task(this, 'ConfirmPayment', {
+      task: new tasks.RunLambdaTask(confirmPaymentLambda),
+      resultPath: '$.ConfirmPaymentResult',
+    }).addCatch(cancelPayment, {
+      resultPath: "$.ConfirmPaymentError"
     });
 
     /**
@@ -118,22 +126,23 @@ export class TheSagaStepfunctionSingleTableStack extends cdk.Stack {
     const confirmHotelBooking = new sfn.Task(this, 'ConfirmHotelBooking', {
       task: new tasks.RunLambdaTask(confirmHotellambda),
       resultPath: '$.ConfirmHotelBookingResult',
-    }).addCatch(refundPayment, {
+    }).addCatch(cancelPayment, {
       resultPath: "$.ConfirmHotelBookingError"
     });
 
     const confirmFlight = new sfn.Task(this, 'ConfirmFlight', {
       task: new tasks.RunLambdaTask(confirmFlightLambda),
       resultPath: '$.ConfirmFlightResult',
-    }).addCatch(refundPayment, {
+    }).addCatch(cancelPayment, {
       resultPath: "$.ConfirmFlightError"
     });
 
     //Step function definition
     const definition = sfn.Chain
-    .start(reserveHotel)
-    .next(reserveFlight)
-    .next(takePayment)
+    .start(requestHotel)
+    .next(requestFlight)
+    .next(requestPayment)
+    .next(confirmPayment)
     .next(confirmHotelBooking)
     .next(confirmFlight)
     .next(bookingSucceeded)
@@ -167,13 +176,13 @@ export class TheSagaStepfunctionSingleTableStack extends cdk.Stack {
 
   /**
    * Helper function to shorten Lambda boilerplate as we have 6 in this stack
-   * @param scope 
-   * @param id 
-   * @param handler 
-   * @param table 
+   * @param scope
+   * @param id
+   * @param handler
+   * @param table
    */
   createLambda(scope:cdk.Stack, id:string, handler:string, table:dynamodb.Table){
-    
+
     // Create a Node Lambda with the table name passed in as an environment variable
     let fn =  new lambda.Function(scope, id, {
       runtime: lambda.Runtime.NODEJS_12_X,

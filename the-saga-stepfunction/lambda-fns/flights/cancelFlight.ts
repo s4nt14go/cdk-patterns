@@ -1,37 +1,42 @@
-const { DynamoDB } = require('aws-sdk');
-export {};
+import { save } from "../lib";
 
 exports.handler = async function(event:any) {
-  console.log("request:", JSON.stringify(event, undefined, 2));
+  console.log("event", event);
 
-  if (Math.random() < 0.4) {
-    throw new Error("Internal Server Error");
-  }
+  const requestError = event.RequestFlightError && JSON.parse(event.RequestFlightError.Cause).errorMessage;
+  const confirmError = event.ConfirmFlightError && JSON.parse(event.ConfirmFlightError.Cause).errorMessage;
 
-  let bookingID = '';
-  if (typeof event.ReserveFlightResult !== 'undefined') {
-      bookingID = event.ReserveFlightResult.Payload.booking_id;
-  }
-
-  // create AWS SDK clients
-  const dynamo = new DynamoDB();
-
-  var params = {
-    TableName: process.env.TABLE_NAME,
-    Key: {
-      'pk' : {S: event.trip_id},
-      'sk' : {S: 'FLIGHT#'+bookingID}
-    }
+  let update = {
+    trip_id: event.trip_id,
+    step: 'FLIGHT',
+    action: 'UPDATE',
   };
-  
-  // Call DynamoDB to add the item to the table
-  let result = await dynamo.deleteItem(params).promise().catch((error: any) => {
-    throw new Error(error);
+
+  if (requestError || confirmError) await save({
+    ...update,
+    requestError,
+    confirmError,
   });
 
-  console.log('deleted flight booking:');
-  console.log(result);
+  try {
+    if (Math.random() < 0.4) {
+      throw new Error("Error while canceling flight");
+    }
 
-  // return status of ok
+    await save({
+      ...update,
+      status: 'CANCELED',
+    });
+  } catch (e) {
+    console.log('e', e);
+    await save({
+      ...update,
+      status: 'CANCEL_ERROR',
+      cancelError: e.toString(),
+    });
+  }
+
   return {status: "ok"}
 };
+
+export {}
