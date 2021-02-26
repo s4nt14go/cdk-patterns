@@ -1,7 +1,7 @@
 ## UPDATE:
 
 >In this repo I made some changes to the original one, it may be convenient taking
-a look at the [original readme](https://github.com/s4nt14go/cdk-patterns/blob/master/the-saga-stepfunction/README.md#original-readme-the-saga-step-function) first and then coming back here.
+a look at the [original readme](#original-readme-the-saga-step-function) first and then coming back here.
 
 In this modified version the word 'request' is used instead of 'reservation', all the errors that can happen in every step (request/confirm/cancel) are saved into the DynamoDB table. There are 4 possible status for every step: 'PENDING', 'CONFIRMED', 'CANCELED' and 'CANCEL_ERROR'.
 
