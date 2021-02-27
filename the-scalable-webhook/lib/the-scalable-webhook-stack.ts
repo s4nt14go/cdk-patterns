@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import lambda = require('@aws-cdk/aws-lambda');
-import apigw = require('@aws-cdk/aws-apigateway');
+import apigateway = require('@aws-cdk/aws-apigateway');
 import sqs = require('@aws-cdk/aws-sqs');
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import dynamodb = require('@aws-cdk/aws-dynamodb');
@@ -63,7 +63,7 @@ export class TheScalableWebhookStack extends cdk.Stack {
      */
 
     // defines an API Gateway REST API resource backed by our "sqsPublishLambda" function.
-    new apigw.LambdaRestApi(this, 'Endpoint', {
+    new apigateway.LambdaRestApi(this, 'TheScalableWebhook', {
       handler: sqsPublishLambda
     });
 
