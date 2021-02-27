@@ -261,6 +261,7 @@ To actually view what happened you will need to log into the AWS console and nav
 
 ## Useful commands
 
+ * `npx cdkp init the-saga-stepfunction` installs this pattern
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
