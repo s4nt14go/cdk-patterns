@@ -76,6 +76,7 @@ we used an id we generated in the message as the key
 
 ## Useful commands
 
+ * `npx cdkp init the-scalable-webhook` installs this pattern
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
