@@ -1,7 +1,7 @@
 var AWS = require('aws-sdk');
 
 exports.handler = async function(event:any) {
-  console.log("request:", JSON.stringify(event, undefined, 2));
+  console.log("event", event);
 
   // Create an SQS service object
   var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
@@ -18,29 +18,12 @@ exports.handler = async function(event:any) {
     QueueUrl: process.env.queueURL,
   };
 
-  let response;
+    const resp = await sqs.sendMessage(params).promise();
 
-  await sqs.sendMessage(params, function(err:any, data:any) {
-    if (err) {
-      console.log("Error", err);
-      response = sendRes(500, err)
-    } else {
-      console.log("Success", data.MessageId);
-      response = sendRes(200, 'You have added a message to the queue! Message ID is '+data.MessageId)
+    console.log('resp', resp);
+    return {
+      statusCode: 200,
+      body: 'You have added a message to the queue! Message ID is ' + resp.MessageId,
     }
-  }).promise();
 
-  // return response back to upstream caller
-  return response;
-};
-
-let sendRes = (status:number, body:string) => {
-  var response = {
-    statusCode: status,
-    headers: {
-      "Content-Type": "text/html"
-    },
-    body: body
-  };
-  return response;
 };

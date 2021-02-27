@@ -1,4 +1,65 @@
-# The Scalable Webhook
+> Check the [original readme](#original-readme-the-scalable-webhook) first, following is the event walkthrough
+
+Event coming into lambda publish:
+
+```json5
+{
+    path: "/<your_path>",
+}
+```
+
+...then sends sqs message:
+
+```javascript
+sqs.sendMessage({
+  DelaySeconds: 10,
+  MessageAttributes: {
+    MessageDeduplicationId: {
+      DataType: "String",
+      StringValue: event.path + new Date().getTime()
+    }
+  },
+  MessageBody: "hello from "+event.path,
+  QueueUrl: process.env.queueURL,
+})
+```
+
+After 10s, lambda subscribe receives the event:
+
+```json5
+{
+    "Records": [
+        {
+            "messageId": "a463e5f9-7979-43e8-9830-df099cc9416b",
+            "receiptHandle": "AQEBSAnfhWTqDImffcGHYn12o81+z9oTlYpOGbfZ9eUnburti/rik+RZeBU/hRpw6FQFlSoq/ZbxZSjTKsEIiAlzPYym744/XHwWy1fPIWvwhjZ4PGE3Y9HxF5/mIXlONroOgR1oJDhHIgk5+iBAF9IlLnQL57kDAEQE7nZrMiSVDCpZ5IWKnlA1+5e1dKCOa85/G5p6qwjF6MKJY7vxOrkZLKjDdui42pUYbiMYJYDMjbw2/0M4Dts00pH4KRUpkw2MyJh2D+PMrD7lyauxfOY1FNj6+52BpDM0NKrW6l3OCYusIDF705Otny8RVKQlIMPkAcHEzl6fFHAtlLvaJYrYYnxTTxnXmeRXALSjkgaKluFhbYXbTPNCi7vwLkGeHRTgHsk9Te59SIU4Pi8gcdNayWsFuqru465EAHqcUeH16KB+ZA5tqoWMqM3Gaqmuj54I",
+            "body": "hello from /<your_path>",
+            "messageAttributes": {
+                "MessageDeduplicationId": {
+                    "stringValue": "/<your_path>1614423648022",
+                    "dataType": "String"
+                }
+            },
+            "eventSource": "aws:sqs",
+            "eventSourceARN": "arn:aws:sqs:us-east-1:<your_account>:TheScalableWebhookStack-RDSPublishQueue2BEA1A7F-NPW2H27YWCC0",
+        }
+    ]
+}
+```
+
+...then writes into DynamoDB:
+
+
+```javascript
+DocumentClient.putItem({
+  TableName: process.env.tableName,
+  Item: {
+    id: event.Records[<index>].messageAttributes.MessageDeduplicationId.stringValue,
+    body: event.Records[<index>].body,
+  }
+})
+```
+
+## ORIGINAL README: The Scalable Webhook
 
 This is an example CDK stack to deploy The Scalable Webhook stack described by Jeremy Daly here - https://www.jeremydaly.com/serverless-microservice-patterns-for-aws/#scalablewebhook
 

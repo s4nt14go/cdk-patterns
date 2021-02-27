@@ -39,7 +39,7 @@ export class TheScalableWebhookStack extends cdk.Stack {
         queueURL: queue.queueUrl
       }
     });
-    
+
     queue.grantSendMessages(sqsPublishLambda);
 
     // defines an AWS Lambda resource to pull from our queue
@@ -49,7 +49,6 @@ export class TheScalableWebhookStack extends cdk.Stack {
       handler: 'lambda.handler',                // file is "lambda", function is "handler"
       reservedConcurrentExecutions: 2, // throttle lambda to 2 concurrent invocations
       environment: {
-        queueURL: queue.queueUrl,
         tableName: table.tableName
       },
     });
@@ -57,7 +56,7 @@ export class TheScalableWebhookStack extends cdk.Stack {
     sqsSubscribeLambda.addEventSource(new SqsEventSource(queue, {}));
     table.grantReadWriteData(sqsSubscribeLambda);
 
-  
+
     /**
      * API Gateway Proxy
      * Used to expose the webhook through a URL
@@ -67,6 +66,6 @@ export class TheScalableWebhookStack extends cdk.Stack {
     new apigw.LambdaRestApi(this, 'Endpoint', {
       handler: sqsPublishLambda
     });
-    
+
   }
 }
