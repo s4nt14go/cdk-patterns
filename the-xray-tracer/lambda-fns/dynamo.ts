@@ -1,24 +1,29 @@
 const AWSXRay = require('aws-xray-sdk');
-const AWS = AWSXRay.captureAWS(require('aws-sdk'));
+const DynamoDB = require('aws-sdk/clients/dynamodb')
+const DocumentClient = new DynamoDB.DocumentClient()
+AWSXRay.captureAWSClient(DocumentClient.service);
 
 exports.handler = async function(event:any) {
   const segment = AWSXRay.getSegment(); //returns the facade segment
-  console.log("request:", JSON.stringify(event, undefined, 2));
+  console.log("event", JSON.stringify(event, undefined, 2));
 
   const dynamoSegment = segment.addNewSubsegment('DynamoDB Query');
   // create AWS SDK clients
-  const dynamo = new AWS.DynamoDB();
   let path = event.Records[0].Sns.Message;
 
   dynamoSegment.addAnnotation("path", path);
   dynamoSegment.addMetadata("event", event)
 
   // update dynamo entry for "path" with hits++
-  await dynamo.updateItem({
+  await DocumentClient.update({
     TableName: process.env.HITS_TABLE_NAME,
-    Key: { path: { S: path } },
-    UpdateExpression: 'ADD hits :incr',
-    ExpressionAttributeValues: { ':incr': { N: '1' } }
+    Key: {
+      path
+    },
+    UpdateExpression: 'ADD hits :one',
+    ExpressionAttributeValues: {
+      ':one': 1
+    },
   }).promise();
 
   console.log('inserted counter for '+ path);

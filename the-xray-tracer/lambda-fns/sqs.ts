@@ -20,15 +20,9 @@ exports.handler = async function(event:any) {
   sqsSegment.addMetadata("params", params)
 
 
-  await sqs.sendMessage(params, function(err:any, data:any) {
-    if (err) {
-      console.log("Error", err);
-    } else {
-      console.log("Success", data.MessageId);
-    }
-  }).promise();
+  const sqsResp = await sqs.sendMessage(params).promise();
+  console.log(sqsResp);
 
-  
   // return response back to upstream caller
   return {"status": "success"};
 };

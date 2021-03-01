@@ -9,8 +9,8 @@ export interface DynamoFlowStackProps extends cdk.StackProps{
 }
 
 export class TheDynamoFlowStack extends cdk.Stack {
-    dynamoLambda: lambda.Function;
-    constructor(scope: cdk.Construct, id: string, props: DynamoFlowStackProps) {
+
+  constructor(scope: cdk.Construct, id: string, props: DynamoFlowStackProps) {
         super(scope, id, props);
 
         //DynamoDB Table
@@ -19,20 +19,20 @@ export class TheDynamoFlowStack extends cdk.Stack {
         });
 
         // defines an AWS Lambda resource
-        this.dynamoLambda = new lambda.Function(this, 'DynamoLambdaHandler', {
+        const dynamoLambda = new lambda.Function(this, 'DynamoLambdaHandler', {
             runtime: lambda.Runtime.NODEJS_12_X,
             code: lambda.Code.fromAsset('lambda-fns'),
             handler: 'dynamo.handler',
             environment: {
                 HITS_TABLE_NAME: table.tableName
             },
-            tracing: lambda.Tracing.ACTIVE
+            tracing: lambda.Tracing.ACTIVE  // Enable AWS X-Ray
         });
 
         // grant the lambda role read/write permissions to our table
-        table.grantReadWriteData(this.dynamoLambda);
+        table.grantReadWriteData(dynamoLambda);
 
         let topic = sns.Topic.fromTopicArn(this, 'SNSTopic', props.snsTopicARN);
-        topic.addSubscription(new sns_sub.LambdaSubscription(this.dynamoLambda));
+        topic.addSubscription(new sns_sub.LambdaSubscription(dynamoLambda));
     }
 }

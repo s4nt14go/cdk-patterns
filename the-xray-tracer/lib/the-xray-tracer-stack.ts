@@ -22,10 +22,10 @@ export class TheXrayTracerStack extends cdk.Stack {
 
     let gateway = new apigw.RestApi(this, 'xrayTracerAPI', {
       deployOptions: {
-        metricsEnabled: true,
+        metricsEnabled: true, // Each method will generate these metrics: API calls, Latency, Integration latency, 400 errors, and 500 errors.
         loggingLevel: apigw.MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
-        tracingEnabled: true,
+        tracingEnabled: true, // Enable X-Ray tracing
         stageName: 'prod'
       }
     });
@@ -54,7 +54,7 @@ export class TheXrayTracerStack extends cdk.Stack {
                             "Message=$util.urlEncode($context.path)&"+
                             "Version=2010-03-31"
       },
-      passthroughBehavior: apigw.PassthroughBehavior.NEVER,
+      passthroughBehavior: apigw.PassthroughBehavior.NEVER, // The request body will never be passed through to the integration. Requests with a Content-Type header that don't match any templates will be rejected with a HTTP 415 response (Unsupported Media Type: client error because of payload format is in an unsupported format).
       integrationResponses: [
         {
           // Tells APIGW which response to use based on the returned code from the service
@@ -62,7 +62,7 @@ export class TheXrayTracerStack extends cdk.Stack {
           responseTemplates: {
             // Just respond with a generic message
             // Check https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html
-            'application/json': JSON.stringify({ message: 'message added to SNS topic'})
+            'application/json': JSON.stringify({ message: '$util.escapeJavaScript($input.body)'})
           }
         },
         {
@@ -88,7 +88,7 @@ export class TheXrayTracerStack extends cdk.Stack {
       modelName: 'ResponseModel',
       schema: { 'schema': apigw.JsonSchemaVersion.DRAFT4, 'title': 'pollResponse', 'type': apigw.JsonSchemaType.OBJECT, 'properties': { 'message': { 'type': apigw.JsonSchemaType.STRING } } }
     });
-    
+
     // We define the JSON Schema for the transformed error response
     const errorResponseModel = gateway.addModel('ErrorResponseModel', {
       contentType: 'application/json',

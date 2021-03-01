@@ -1,4 +1,140 @@
-# The X-Ray Tracer
+> Check the [original readme](#original-readme-the-x-ray-tracer) first, following is the walkthrough
+
+## Stack TheXrayTracerStack (the-xray-tracer-stack.ts): apigateway ➡️ sns
+
+the-xray-tracer-stack.ts:
+
+```javascript
+apigateway.Integration({
+  options: {
+    requestTemplates: {
+      'application/json': "Action=Publish&"+
+        "TargetArn=$util.urlEncode('"+snsTopic+"')&"+
+        "Message=$util.urlEncode($context.path)&"+
+        "Version=2010-03-31"
+    }  
+  }
+})
+```
+
+API Gateway logs after GET to `https://<api_id>.execute-api.us-east-1.amazonaws.com/prod/<some_path>`:
+
+```log
+HTTP Method: GET, Resource Path: /<some_path>
+Method request path: {proxy=<some_path>}
+Method request query string: {}
+Received response. Status: 200
+Endpoint response body before transformations: 
+{
+    "PublishResponse": {
+        "PublishResult": {
+            "MessageId": "e4eb0ae2-d586-54e9-b0da-5254dfb34625",
+            "SequenceNumber": null
+        },
+        "ResponseMetadata": {
+            "RequestId": "63713948-6f21-5f9f-a15a-61fe6514cd53"
+        }
+    }
+}
+Method response body after transformations: 
+{
+  'message': '{
+    PublishResponse: {
+      PublishResult:{
+        MessageId: "1bad870c-7f52-5778-a755-dfbae0cfef1c",
+        SequenceNumber: null
+      },
+    ResponseMetadata:{
+      RequestId: "63713948-6f21-5f9f-a15a-61fe6514cd53"}}}'
+}   ---> because of apigateway.Integration({integrationResponses: [{statusCode: "200",responseTemplates: {'application/json': JSON.stringify({ message: '$util.escapeJavaScript($input.body)'... @the-xray-tracer-stack.ts
+```
+
+## sns ➡️ lambda
+
+Lambda event:
+
+```log
+event {
+  Records: [
+    {
+      EventSource: 'aws:sns',
+      EventSubscriptionArn: 'arn:aws:sns:us-east-1:<account>:TheXrayTracerStack-TheXRayTracerSnsFanOutTopicDE7E70F8-ULWUJGACWUO4:c034ad74-207f-484a-ada9-ba31b75b2d09',
+      Sns: {
+        "Type": "Notification",
+        "MessageId": "1bad870c-7f52-5778-a755-dfbae0cfef1c",
+        "TopicArn": "arn:aws:sns:us-east-1:<account>:TheXrayTracerStack-TheXRayTracerSnsFanOutTopicDE7E70F8-ULWUJGACWUO4",
+        "Message": "/prod/<some_path>",
+      }
+    }
+  ]
+}
+```
+
+## Stack TheXraySQSFlow (the-sqs-flow-stack.ts): lambda ➡️ sqs
+
+Lambda code (sqs.ts):
+
+```javascript
+SQS.sendMessage({
+  DelaySeconds: 1,
+  MessageBody: "hello from "+ event.Records[0].Sns.Message,
+  QueueUrl: process.env.SQS_URL,
+}).promise();
+```
+Response from SQS:
+
+```log
+{
+  ResponseMetadata: { RequestId: '2144da4a-f54f-5339-8b85-82fc5d869877' },
+  MD5OfMessageBody: 'e716e5c1ed8d8e35c31b63e6b20d1e27',
+  MessageId: 'c87d5bca-799b-43d6-b1f7-32b6c130d6f8'
+}
+```
+
+### sqs ➡️ lambda
+
+Lambda event (sqs_subscribe.ts):
+
+```log
+event {
+  Records: [
+    {
+      messageId: "c87d5bca-799b-43d6-b1f7-32b6c130d6f8",
+      receiptHandle: "AQEBMrPyADApVKuR8No38ZszoGIjEEXW0uxphMQLVALsap9KMEiqGkXyxR4yLmIobDzQerp6KwBGs+hdmu+wiLXjKJIaQvYCP5n5BFi7ev/H619Y9ASEBeUlQEYOPgrKlpnvxu0O9Y9k8UJQz9VHSW4iFltmUwZhIHLA6dSMDBMpXpl1pjNvb3JzKGOvMcfNI5Kc3Al1S+c8UF3sLU+7eKqCE6z6cqekcky8YaqXUOkK3pthw2WHvcWSdON5MgwEFuJAz4EDlWX57Nxy76rb9NLr0VFgCjd+JplJ1VIUKBN8cBOBJbS9YA8+HynDSB9a5yWfqi4iLiggrlmQDG1ey+YMciU8rv+Z1USwaFmJQfviR3pGqLbw/bt4nFNypml//Hg0nfvova8tkuBNN4OWTKKYAldUeouZBL1d7ZuBGonSxy4=",
+      body: "hello from /prod/a1",
+      attributes: {
+        ApproximateReceiveCount: "1",
+        AWSTraceHeader: "Root=1-603ca687-5b528b964acfc31d4e6ccd26;Parent=bff4e5bdd37a1813;Sampled=1",
+        SenderId: "AROAWY5G2EY6WONRZJUIZ:TheXraySQSFlow-sqsLambdaHandler0DD5DF9B-EXXOIH12XJHL",
+      },
+      eventSource: "aws:sqs",
+      eventSourceARN: "arn:aws:sqs:us-east-1:<account>:TheXraySQSFlow-Queue4A7E3555-BQKL1JR9KOPO",
+    }
+  ]
+}
+```
+
+### Stack TheXraySnsFlow: lambda ➡️ sns
+
+Lambda (sns_publish.ts) code:
+
+```javascript
+SNS().publish({
+  Message: 'Simulated Message',
+  TopicArn: process.env.TOPIC_ARN
+}).promise();
+```
+
+SNS response:
+
+```log
+{
+  ResponseMetadata: { RequestId: '78e3bd3b-b46b-53a7-b0be-e58d00a12ca3' },
+  MessageId: 'c52fca9a-1164-5523-bcdc-922ca5ae2a27'
+}
+```
+
+## ORIGINAL README: The X-Ray Tracer
 
 ![high level image](img/arch_trimmed.png)
 
