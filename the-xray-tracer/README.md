@@ -410,6 +410,7 @@ Unlike other tracing solutions I have used that let you position all of the circ
 
 ## Useful commands
 
+ * `npx cdkp init the-xray-tracer`   installs this pattern
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
