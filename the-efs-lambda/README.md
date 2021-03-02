@@ -1,4 +1,12 @@
-# The EFS Lambda Pattern
+Try this pattern `curl`ing like this:
+```shell
+API=<your_api>
+curl -X GET https://$API_ID.execute-api.us-east-1.amazonaws.com
+curl -d '{"some":"data"}' -H "Content-Type: application/json" -X POST https://$API_ID.execute-api.us-east-1.amazonaws.com
+curl -X DELETE https://$API_ID.execute-api.us-east-1.amazonaws.com
+```
+
+# ORIGINAL README: The EFS Lambda Pattern
 
 ![efs lambda overview](img/overview.png)
 
@@ -50,6 +58,7 @@ Note - After deployment you may need to wait 60-90 seconds before the implementa
 ## Useful commands
 
  * `npx cdkp init the-efs-lambda` installs this pattern
+ * `npm run cdk -- destroy -f` destroy pattern without asking
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
