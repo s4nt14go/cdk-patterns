@@ -49,6 +49,7 @@ Note - After deployment you may need to wait 60-90 seconds before the implementa
 
 ## Useful commands
 
+ * `npx cdkp init the-efs-lambda` installs this pattern
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
