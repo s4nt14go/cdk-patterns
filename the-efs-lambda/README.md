@@ -1,6 +1,6 @@
 Try this pattern `curl`ing like this:
 ```shell
-API=<your_api>
+API_ID=<your_api>
 curl -X GET https://$API_ID.execute-api.us-east-1.amazonaws.com
 curl -d '{"some":"data"}' -H "Content-Type: application/json" -X POST https://$API_ID.execute-api.us-east-1.amazonaws.com
 curl -X DELETE https://$API_ID.execute-api.us-east-1.amazonaws.com
