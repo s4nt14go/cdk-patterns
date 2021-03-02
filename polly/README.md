@@ -66,7 +66,8 @@ To understand what languages are possible please refer to the [documentation](ht
 If you use a tool like Postman to send text in the body of a POST request to the url it will use Polly to synthesize your text
 
 ## Useful commands
-
+ * `npx cdkp init polly` installs this pattern
+ * `npm run cdk -- destroy -f` destroy pattern without asking
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
