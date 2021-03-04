@@ -1,7 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import lambda = require('@aws-cdk/aws-lambda');
-import apigw = require('@aws-cdk/aws-apigatewayv2');
-import integrations = require('@aws-cdk/aws-apigatewayv2-integrations');
+import apigateway = require('@aws-cdk/aws-apigateway');
 import iam = require('@aws-cdk/aws-iam');
 
 export class PollyStack extends cdk.Stack {
@@ -14,7 +13,7 @@ export class PollyStack extends cdk.Stack {
       code: lambda.Code.fromAsset('lambda-fns'),
       handler: 'polly.handler'
     });
-    
+
     // https://docs.aws.amazon.com/polly/latest/dg/api-permissions-reference.html
     // https://docs.aws.amazon.com/translate/latest/dg/translate-api-permissions-ref.html
     const pollyStatement = new iam.PolicyStatement({
@@ -27,15 +26,25 @@ export class PollyStack extends cdk.Stack {
     });
     pollyLambda.addToRolePolicy(pollyStatement);
 
-    // defines an API Gateway Http API resource backed by our "pollyLambda" function.
-    let api = new apigw.HttpApi(this, 'Endpoint', {
-      defaultIntegration: new integrations.LambdaProxyIntegration({
-        handler: pollyLambda
-      })
+    const api = new apigateway.RestApi(this, id, {
+      deployOptions: {
+        methodOptions: {
+          '/*/*': {  // This special path applies to all resource paths and all HTTP methods
+            throttlingRateLimit: 5,
+            throttlingBurstLimit: 5
+          }
+        }
+      }
     });
 
-   new cdk.CfnOutput(this, 'HTTP API Url', {
-     value: api.url ?? 'Something went wrong with the deploy'
-   });
+    api.root.addMethod('POST', new apigateway.LambdaIntegration(pollyLambda));
+
+    new cdk.CfnOutput(this, 'restApiId', {
+      value: api.restApiId ?? 'Something went wrong with the deploy'
+    });
+
+    new cdk.CfnOutput(this, 'api.url', {
+      value: api.url ?? 'Something went wrong with the deploy'
+    });
   }
 }
