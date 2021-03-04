@@ -1,4 +1,22 @@
-# Polly Pattern
+You can send a POST with "text" property to hear Polly, using Postman:
+
+<p align="center">
+  <img src="img/postman1.png" />
+</p><br />
+
+Sending url parameters you can customize the voice
+```text
+style: conversational | news
+voice: Matthew | Joanna | Lupe | Amy
+translateFrom/translateTo, some examples (English, Italian, Spanish): en | it | es 
+```
+...for example:
+
+<p align="center">
+  <img src="img/postman2.png" />
+</p><br />
+
+# ORIGINAL README: Polly Pattern
 
 ![overview image](img/overview.png)
 

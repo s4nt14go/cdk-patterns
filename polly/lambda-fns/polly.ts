@@ -1,17 +1,35 @@
 const { Polly, Translate } = require('aws-sdk');
 
 exports.handler = async function(event:any) {
+  console.log('event', event);
 
-  // Default to Matthew voice and add some default text
-  let text = event?.body ?? "To hear your own script, you need to include text in the message body of your restful request to the API Gateway";
+  // Default text
+  let text = "To hear your own script, you need to include text in the message body of your restful request to the API Gateway";
+  try {
+    text = JSON.parse(event.body).text;
+  } catch (e) {
+    console.log(e);
+  }
+  console.log('text after try-catch', text);
+
+  // Default voices, style and translation
   let voice = event?.queryStringParameters?.voice ?? "Matthew";
+  let style = event?.queryStringParameters?.style ?? "conversational";
   let translateFrom = event?.queryStringParameters?.translateFrom ?? "en";
   let translateTo = event?.queryStringParameters?.translateTo ?? "en";
 
-  const validVoices = ['Joanna', 'Matthew', 'Lupe'];
+
+  // Depending on the language and style combination, some voices are supported, check it out in your project
+  let validVoices = ['Joanna', 'Matthew'];
+  if (style === "news") validVoices.push('Lupe', 'Amy');
+  const msg = `Valid voices for style ${style}: ${validVoices.join(', ')}`
+  console.log(msg)
 
   if(!validVoices.includes(voice)){
-    sendRes(400, 'Only Joanna, Matthew and Lupe support the newscaster style')
+    return {
+      statusCode: 400,
+      body: msg
+    }
   }
 
   // If we passed in a translation language, use translate to do the translation
@@ -26,6 +44,7 @@ exports.handler = async function(event:any) {
 
     let rawTranslation = await translate.translateText(translateParams).promise();
     text = rawTranslation.TranslatedText;
+    console.log('translated text', text);
   }
 
   // Use Polly to translate text into speech
@@ -36,35 +55,24 @@ exports.handler = async function(event:any) {
     OutputFormat: 'mp3',
     Engine:'neural',
     TextType:'ssml',
-    Text: `<speak><amazon:domain name="news">${text}></amazon:domain></speak>`,
+    Text: `<speak><amazon:domain name="${style}">${text}</amazon:domain></speak>`,
     VoiceId: voice,
   };
+  console.log('Text markup', params.Text);
 
   let synthesis = await polly.synthesizeSpeech(params).promise();
   let audioStreamBuffer = Buffer.from(synthesis.AudioStream);
 
-  return sendVoiceRes(200, audioStreamBuffer.toString('base64'));
-};
+  const base64 = audioStreamBuffer.toString('base64');
+  console.log('base64', base64);
 
-const sendVoiceRes = (status:number, body:string) => {
-  var response = {
-    statusCode: status,
+  return {
+    statusCode: 200,
+    body: base64,
+    // To send straight the audio
     headers: {
       "Content-Type": "audio/mpeg",
     },
-    body: body,
     isBase64Encoded: true
   };
-  return response;
-};
-
-const sendRes = (status:number, body:string) => {
-  var response = {
-    statusCode: status,
-    headers: {
-    "Content-Type": "text/html"
-    },
-    body: body
-  };
-  return response;
 };
