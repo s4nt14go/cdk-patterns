@@ -1,6 +1,5 @@
 *.js
 !jest.config.js
-!react-app/**
 *.d.ts
 node_modules
 
@@ -10,3 +9,5 @@ cdk.out
 
 # Parcel default cache directory
 .parcel-cache
+
+!react-app/**
