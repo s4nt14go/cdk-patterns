@@ -6,7 +6,7 @@ exports.handler = async function(event:any) {
   // Default text
   let text = "To hear your own script, you need to include text in the message body of your restful request to the API Gateway";
   try {
-    text = JSON.parse(event.body).text;
+    text = JSON.parse(event.body).text.slice(0,100);
   } catch (e) {
     console.log(e);
   }
