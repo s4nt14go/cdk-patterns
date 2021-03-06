@@ -33,6 +33,7 @@ exports.handler = async function(event:any) {
   }
 
   // If we passed in a translation language, use translate to do the translation
+  let translated;
   if(translateTo !== translateFrom){
     const translate = new Translate();
 
@@ -43,8 +44,8 @@ exports.handler = async function(event:any) {
     };
 
     let rawTranslation = await translate.translateText(translateParams).promise();
-    text = rawTranslation.TranslatedText;
-    console.log('translated text', text);
+    text = translated = rawTranslation.TranslatedText;
+    console.log('translated', translated);
   }
 
   // Use Polly to translate text into speech
@@ -66,8 +67,16 @@ exports.handler = async function(event:any) {
   const base64 = audioStreamBuffer.toString('base64');
   console.log('base64', base64);
 
+  const body = JSON.stringify({
+    base64,
+    translated
+  });
+
   return {
     statusCode: 200,
-    body: base64,
+    headers: {
+      "Access-Control-Allow-Origin": "*", // Avoid block by CORS policy (when fetching from react) because of no 'Access-Control-Allow-Origin' header on the requested resource.
+    },
+    body
   };
 };

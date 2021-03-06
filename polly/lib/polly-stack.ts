@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import lambda = require('@aws-cdk/aws-lambda');
 import apigateway = require('@aws-cdk/aws-apigateway');
 import iam = require('@aws-cdk/aws-iam');
+import { SPADeploy } from 'cdk-spa-deploy';
 
 export class PollyStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -38,6 +39,12 @@ export class PollyStack extends cdk.Stack {
     });
 
     api.root.addMethod('POST', new apigateway.LambdaIntegration(pollyLambda));
+
+    new SPADeploy(this, 'websiteDeploy')
+      .createBasicSite({
+        indexDoc: 'index.html',
+        websiteFolder: 'react-app/build'
+      })
 
     new cdk.CfnOutput(this, 'restApiId', {
       value: api.restApiId ?? 'Something went wrong with the deploy'
