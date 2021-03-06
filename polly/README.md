@@ -1,20 +1,13 @@
-You can send a POST with "text" property to hear Polly, using Postman:
+I extended the original pattern adding some functionality, also changed API Gateway from HttpApi to RestApi to protect the endpoint setting throttling.
 
-<p align="center">
-  <img src="img/postman1.png" />
-</p><br />
+Also added a React site where you can try Polly and Translate, [check it out!](http://pollystack-websitedeploywebsitebucket8c75cfaa-1czk0ima8nvho.s3-website-us-east-1.amazonaws.com)
 
-Sending url parameters you can customize the voice
-```text
-style: conversational | news
-voice: Matthew | Joanna | Lupe | Amy
-translateFrom/translateTo, some examples (English, Italian, Spanish): en | it | es 
+In case you want to modify your React app remember doing:
+```shell
+cd react-app
+npm run build
 ```
-...for example:
-
-<p align="center">
-  <img src="img/postman2.png" />
-</p><br />
+...before redeploying with cdk.
 
 # ORIGINAL README: Polly Pattern
 
