@@ -13,34 +13,19 @@ exports.handler = async function(event:any) {
   console.log('text after try-catch', text);
 
   // Default voices, style and translation
-  let voice = event?.queryStringParameters?.voice ?? "Matthew";
-  let style = event?.queryStringParameters?.style ?? "conversational";
-  let translateFrom = event?.queryStringParameters?.translateFrom ?? "en";
-  let translateTo = event?.queryStringParameters?.translateTo ?? "en";
-
-
-  // Depending on the language and style combination, some voices are supported, check it out in your project
-  let validVoices = ['Joanna', 'Matthew'];
-  if (style === "news") validVoices.push('Lupe', 'Amy');
-  const msg = `Valid voices for style ${style}: ${validVoices.join(', ')}`
-  console.log(msg)
-
-  if(!validVoices.includes(voice)){
-    return {
-      statusCode: 400,
-      body: msg
-    }
-  }
+  let textLanguage = event?.queryStringParameters?.translateFrom ?? "en";
+  let targetLanguage = event?.queryStringParameters?.translateTo ?? textLanguage;
+  let gender = event?.queryStringParameters?.gender ?? "male";
 
   // If we passed in a translation language, use translate to do the translation
   let translated;
-  if(translateTo !== translateFrom){
+  if(textLanguage !== targetLanguage){
     const translate = new Translate();
 
     var translateParams = {
       Text: text,
-      SourceLanguageCode: translateFrom,
-      TargetLanguageCode: translateTo
+      SourceLanguageCode: textLanguage,
+      TargetLanguageCode: targetLanguage
     };
 
     let rawTranslation = await translate.translateText(translateParams).promise();
@@ -52,13 +37,45 @@ exports.handler = async function(event:any) {
 
   const polly = new Polly();
 
-  const params = {
+  const params:any = {
     OutputFormat: 'mp3',
-    Engine:'neural',
-    TextType:'ssml',
-    Text: `<speak><amazon:domain name="${style}">${text}</amazon:domain></speak>`,
-    VoiceId: voice,
+    Text: text,
   };
+  if (gender === 'male') {
+    switch (targetLanguage) {
+      case 'en':
+        params.VoiceId = 'Matthew'; // English (US) (en-US)
+        params.Engine = 'neural';
+        params.TextType = 'ssml';
+        params.Text = `<speak><amazon:domain name="conversational">${text}</amazon:domain></speak>`;
+        break;
+      case 'es':
+        params.VoiceId = 'Miguel'; // US Spanish (es-US)
+        break;
+      case 'it':
+        params.VoiceId = 'Giorgio'; // Italian (it-IT)
+        break;
+    }
+  }
+  else {
+    switch (targetLanguage) {
+      case 'en':
+        params.VoiceId = 'Joanna'; // English (US) (en-US)
+        params.Engine = 'neural';
+        params.TextType = 'ssml';
+        params.Text = `<speak><amazon:domain name="conversational">${text}</amazon:domain></speak>`;
+        break;
+      case 'es':
+        params.VoiceId = 'Lupe'; // US Spanish (es-US)
+        params.Engine = 'neural';
+        params.TextType = 'ssml';
+        params.Text = `<speak><amazon:domain name="conversational">${text}</amazon:domain></speak>`;
+        break;
+      case 'it':
+        params.VoiceId = 'Bianca'; // Italian (it-IT)
+        break;
+    }
+  }
   console.log('Text markup', params.Text);
 
   let synthesis = await polly.synthesizeSpeech(params).promise();

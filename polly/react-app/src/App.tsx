@@ -2,26 +2,21 @@ import React, {ChangeEvent, useEffect, useState} from 'react';
 import './App.css';
 import quotes from './scripts/best100-array.json';
 import polly from './polly.png';
-
-type Styles = 'conversational' | 'news';
+import config from './config';
 
 function App() {
 
-  const voicesAlways = ['Joanna', 'Matthew'];
-  const voicesOnlyNews = ['Lupe', 'Amy'];
   const [text, setText] = useState(quotes[Math.floor(Math.random()*100)]);
-  const [translateSource, setTranslateSource] = useState('en');
+  const [textLanguage, setTextLanguage] = useState('en');
   const [translateTarget, setTranslateTarget] = useState('es');
-  const [style, setStyle] = useState('conversational');
-  const [possibleVoices, setPossibleVoices] = useState(voicesAlways);
-  const [voice, setVoice] = useState(voicesAlways[0]);
   const [fetching, setFetching] = useState(false);
   const [translated, setTranslated] = useState('');
   const [noTranslation, setNoTranslation] = useState(false);
+  const [gender, setGender] = useState('male');
 
   function speak() {
     setFetching(true);
-    fetch(`https://df6hqbn7dh.execute-api.us-east-1.amazonaws.com/prod?translateFrom=${translateSource}&translateTo=${translateTarget}&style=${style}&voice=${voice}`,
+    fetch(`${config.API}?textLanguage=${textLanguage}&translateTo=${translateTarget}&gender=${gender}`,
       {
         method: 'POST',
         body: JSON.stringify({text}),
@@ -39,29 +34,12 @@ function App() {
       });
   }
 
-  function settingStyle(style:Styles) {
-    switch (style) {
-      case 'conversational':
-        setPossibleVoices(voicesAlways);
-        if (voicesOnlyNews.includes(voice)) {
-          setVoice(voicesAlways[0]);
-        }
-        break;
-      case 'news':
-        setPossibleVoices(voicesAlways.concat(voicesOnlyNews));
-        break;
-      default:
-        console.error(`Unrecognized style: ${style}`);
-    }
-    setStyle(style);
-  }
-
   useEffect(() => {
     setTranslated('');
   }, [text]);
 
   function onChangeSource(event:ChangeEvent<HTMLSelectElement>){
-    setTranslateSource(event.target.value);
+    setTextLanguage(event.target.value);
     setTranslated('');
   }
 
@@ -71,16 +49,15 @@ function App() {
   }
 
   useEffect(() => {
-    if (translateSource === translateTarget) {
+    if (textLanguage === translateTarget) {
       setNoTranslation(true);
     } else {
       setNoTranslation(false);
     }
-  }, [translateTarget, translateSource]);
+  }, [translateTarget, textLanguage]);
 
   const textClasses = 'flex lg:w-2/3 w-full sm:flex-row flex-col mx-auto px-8 sm:space-x-4 sm:space-y-0 space-y-4 sm:px-0 items-end';
   const configClasses = 'flex flex-col items-end lg:w-2/3 mx-auto px-8 sm:flex-row sm:px-0 sm:space-x-4 sm:space-y-0 space-y-4 w-full';
-  const noTranslationClasses = 'line-through text-gray-400';
 
   return (
     <div className="App">
@@ -113,15 +90,15 @@ function App() {
           </div>
 
           <div
-            className={`${configClasses} ${noTranslation? noTranslationClasses: ''}`}>
+            className={configClasses}>
             <div className="w-full flex py-3">
-              <span>Translate language source</span>
+              <span>Text language</span>
             </div>
             <div className="w-full">
               <select
-                value={translateSource}
+                value={textLanguage}
                 onChange={onChangeSource}
-                className={`w-full border bg-white rounded px-3 py-2 outline-none ${noTranslation? noTranslationClasses: ''}`}
+                className={`w-full border bg-white rounded px-3 py-2 outline-none`}
               >
                 <option value='en'>
                   English
@@ -137,7 +114,7 @@ function App() {
           </div>
 
           <div
-            className={`${configClasses} ${noTranslation? noTranslationClasses: ''}`}>
+            className={`${configClasses} ${noTranslation? 'text-gray-400': ''}`}>
             <div className="w-full flex py-3">
               <span>Translate language target</span>
             </div>
@@ -145,7 +122,7 @@ function App() {
               <select
                 value={translateTarget}
                 onChange={onChangeTarget}
-                className={`w-full border bg-white rounded px-3 py-2 outline-none ${noTranslation? noTranslationClasses: ''}`}
+                className={`w-full border bg-white rounded px-3 py-2 outline-none ${noTranslation? 'text-gray-400': ''}`}
               >
                 <option value='en'>
                   English
@@ -163,50 +140,23 @@ function App() {
           <div
             className={configClasses}>
             <div className="w-full flex py-3">
-              <span>Style</span>
+              <span>Gender</span>
             </div>
             <div className="w-full">
               <select
-                value={style}
-                onChange={(event) => {
-                  settingStyle(event.target.value as Styles)
-                }}
-                className="w-full border bg-white rounded px-3 py-2 outline-none"
+                value={gender}
+                onChange={event => setGender(event.target.value)}
+                className={`w-full border bg-white rounded px-3 py-2 outline-none`}
               >
-                <option value='conversational'>
-                  conversational
+                <option value='male'>
+                  Male
                 </option>
-                <option value='news'>
-                  news
+                <option value='female'>
+                  Female
                 </option>
               </select>
             </div>
           </div>
-
-
-          <div
-            className={configClasses}>
-            <div className="w-full flex py-3">
-              <span>Voice</span>
-            </div>
-            <div className="w-full">
-              <select
-                value={voice}
-                onChange={(event) => {
-                  console.log('event', event);
-                  setVoice(event.target.value)
-                }}
-                className="w-full border bg-white rounded px-3 py-2 outline-none"
-              >
-
-                {possibleVoices.map(voice =>
-                  <option key={voice} value={voice}>{voice}</option>
-                )}
-
-              </select>
-            </div>
-          </div>
-
 
           <div
             className={`${configClasses} py-3`}>
