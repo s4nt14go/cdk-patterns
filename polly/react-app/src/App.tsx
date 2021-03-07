@@ -1,6 +1,7 @@
 import React, {ChangeEvent, useEffect, useState} from 'react';
 import './App.css';
 import quotes from './scripts/best100-array.json';
+import polly from './polly.png';
 
 type Styles = 'conversational' | 'news';
 
@@ -88,6 +89,7 @@ function App() {
 
 
           <div className="flex flex-col text-center w-full mb-4">
+            <img src={polly} alt="Polly" className='mx-auto w-40' />
             <h1 className="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">Make Polly speak!</h1>
             <p className="lg:w-2/3 mx-auto leading-relaxed text-base">Try this <a href="https://github.com/s4nt14go/cdk-patterns/tree/master/polly" target='_blank' rel="noreferrer" className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>CDK pattern</a> with Polly and Translate</p>
           </div>
