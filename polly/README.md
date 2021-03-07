@@ -1,6 +1,13 @@
-I extended the original pattern adding some functionality, also changed API Gateway from HttpApi to RestApi to protect the endpoint setting throttling.
+I extended the original pattern adding some functionality:
+* API Gateway changed from HttpApi to RestApi to protect the endpoint setting throttling.
+* Can select voice style: news | conversational
+* Add voice Amy
 
 Also added a React site where you can try Polly and Translate, [check it out!](http://pollystack-websitedeploywebsitebucket8c75cfaa-1czk0ima8nvho.s3-website-us-east-1.amazonaws.com)
+
+<a href="http://pollystack-websitedeploywebsitebucket8c75cfaa-1czk0ima8nvho.s3-website-us-east-1.amazonaws.com" align="center">
+  <img src="img/react-app.png" />
+</a><br />
 
 In case you want to modify your React app remember doing:
 ```shell
