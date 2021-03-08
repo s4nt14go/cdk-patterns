@@ -15,7 +15,7 @@ export class TheCloudwatchDashboardStack extends cdk.Stack {
     // ---------------------------------------------------------------------------------
     /**
      * The Simple Webservice Logic - This is what we will be monitoring
-     * 
+     *
      * API GW HTTP API, Lambda Fn and DynamoDB
      * https://github.com/cdk-patterns/serverless/tree/master/the-simple-webservice
      */
@@ -50,13 +50,13 @@ export class TheCloudwatchDashboardStack extends cdk.Stack {
     // ---------------------------------------------------------------------------------
     /**
      * Monitoring Logic Starts Here
-     * 
+     *
      * This is everything we need to understand the state of our system:
      * - custom metrics
      * - cloudwatch alarms
      * - custom cloudwatch dashboard
      */
-    // ---------------------------------------------------------------------------------  
+    // ---------------------------------------------------------------------------------
 
     //SNS Topic so we can hook things into our alerts e.g. email
     const errorTopic = new sns.Topic(this, 'errorTopic');
@@ -78,7 +78,7 @@ export class TheCloudwatchDashboardStack extends cdk.Stack {
     // Gather the % of lambda invocations that error in past 5 mins
     let dynamoLambdaErrorPercentage = new cloudwatch.MathExpression({
       expression: 'e / i * 100',
-      label: '% of invocations that errored, last 5 mins', 
+      label: '% of invocations that errored, last 5 mins',
       usingMetrics: {
         i: dynamoLambda.metric("Invocations", {statistic: 'sum'}),
         e: dynamoLambda.metric("Errors", {statistic: 'sum'}),
@@ -89,7 +89,7 @@ export class TheCloudwatchDashboardStack extends cdk.Stack {
     // note: throttled requests are not counted in total num of invocations
     let dynamoLambdaThrottledPercentage = new cloudwatch.MathExpression({
       expression: 't / (i + t) * 100',
-      label: '% of throttled requests, last 30 mins',
+      label: '% of throttled requests, last 5 mins',
       usingMetrics: {
         i: dynamoLambda.metric("Invocations", {statistic: 'sum'}),
         t: dynamoLambda.metric("Throttles", {statistic: 'sum'}),
@@ -121,7 +121,7 @@ export class TheCloudwatchDashboardStack extends cdk.Stack {
       },
       period: cdk.Duration.minutes(5)
     });
-    
+
     /**
      * Alarms
      */
@@ -197,7 +197,7 @@ export class TheCloudwatchDashboardStack extends cdk.Stack {
       datapointsToAlarm: 1,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING
     }).addAlarmAction(new SnsAction(errorTopic));
-    
+
     // There should be 0 DynamoDB errors
     new cloudwatch.Alarm(this, 'DynamoDB Errors > 0', {
       metric: dynamoDBTotalErrors,
@@ -209,8 +209,8 @@ export class TheCloudwatchDashboardStack extends cdk.Stack {
 
 
     /**
-     * Custom Cloudwatch Dashboard 
-     */  
+     * Custom Cloudwatch Dashboard
+     */
 
     new cloudwatch.Dashboard(this, 'CloudWatchDashBoard').addWidgets(
       this.buildGraphWidget('Requests', [
