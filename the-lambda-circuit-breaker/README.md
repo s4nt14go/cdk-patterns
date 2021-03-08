@@ -118,6 +118,8 @@ Open means that no requests are going through to the unreliable function, half m
 
 ## Useful commands
 
+ * `npx cdkp init the-lambda-circuit-breaker` installs this pattern
+ * `npm run cdk -- destroy -f` destroy pattern without asking
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
