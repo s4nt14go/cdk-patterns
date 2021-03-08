@@ -24,7 +24,8 @@ export class TheCloudwatchDashboardStack extends cdk.Stack {
     // DynamoDB Table
     const table = new dynamodb.Table(this, 'Hits', {
       partitionKey: { name: 'path', type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
     // Lambda to interact with DynamoDB

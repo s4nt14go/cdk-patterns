@@ -28,7 +28,8 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
      * This is where our transformed data ends up
      */
     const table = new dynamodb.Table(this, 'TransformedData', {
-      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING }
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
     /**

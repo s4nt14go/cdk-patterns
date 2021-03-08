@@ -14,7 +14,8 @@ export class TheScalableWebhookStack extends cdk.Stack {
      * This is standing in for what is RDS on the diagram due to simpler/cheaper setup
      */
     const table = new dynamodb.Table(this, 'Messages', {
-      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING } //the key being id means we squash duplicate sqs messages
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING }, //the key being id means we squash duplicate sqs messages
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
     /**

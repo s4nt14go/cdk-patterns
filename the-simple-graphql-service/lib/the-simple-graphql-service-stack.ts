@@ -32,6 +32,7 @@ export class TheSimpleGraphQLServiceStack extends cdk.Stack {
         name: 'id',
         type: AttributeType.STRING,
       },
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
     /**

@@ -23,7 +23,8 @@ export class TheSagaStepfunctionSingleTableStack extends cdk.Stack {
 
     const bookingsTable = new dynamodb.Table(this, 'Bookings', {
       partitionKey: { name: 'pk', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING }
+      sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
     /**
