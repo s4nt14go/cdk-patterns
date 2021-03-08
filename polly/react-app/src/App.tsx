@@ -1,12 +1,12 @@
 import React, {ChangeEvent, useEffect, useState} from 'react';
 import './App.css';
-import quotes from './scripts/best100-array.json';
+import quotes from './scripts/quotes-array.json';
 import polly from './polly.png';
 import config from './config';
 
 function App() {
 
-  const [text, setText] = useState(quotes[Math.floor(Math.random()*100)]);
+  const [text, setText] = useState(quotes[Math.floor(Math.random()*101)]);
   const [textLanguage, setTextLanguage] = useState('en');
   const [translateTarget, setTranslateTarget] = useState('es');
   const [fetching, setFetching] = useState(false);
