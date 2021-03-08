@@ -21,17 +21,17 @@ function App() {
         method: 'POST',
         body: JSON.stringify({text}),
       }).then(response => {
-        return response.text();
-      }).then(result => {
-        const parsed = JSON.parse(result);
-        setTranslated(parsed.translated);
-        return new Audio(`data:audio/mpeg;base64,${parsed.base64}`).play();
-      }).then(result => {
-          setFetching(false);
+        return response.json();
+      }).then(json => {
+        console.log(json);
+        if (json.error) throw Error(json.error);
+        setTranslated(json.translated);
+        console.log('Try to play audio');
+        return new Audio(`data:audio/mpeg;base64,${json.base64}`).play();
       }).catch(error => {
-        console.error(error);
-        setFetching(false);
-      });
+        console.log(error);
+        alert(error);
+      }).finally(() => setFetching(false));
   }
 
   useEffect(() => {

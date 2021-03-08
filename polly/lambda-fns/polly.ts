@@ -1,6 +1,7 @@
 const { Polly, Translate } = require('aws-sdk');
+import wrapper from "./wrapper";
 
-exports.handler = async function(event:any) {
+exports.handler = wrapper(async (event:any) => {
   console.log('event', event);
 
   // Default text
@@ -11,6 +12,7 @@ exports.handler = async function(event:any) {
     console.log(e);
   }
   console.log('text after try-catch', text);
+  if (text === 'force error') throw Error('Lambda error forced!');
 
   // Default voices, style and translation
   let textLanguage = event?.queryStringParameters?.translateFrom ?? "en";
@@ -22,7 +24,7 @@ exports.handler = async function(event:any) {
   if(textLanguage !== targetLanguage){
     const translate = new Translate();
 
-    var translateParams = {
+    const translateParams = {
       Text: text,
       SourceLanguageCode: textLanguage,
       TargetLanguageCode: targetLanguage
@@ -84,16 +86,8 @@ exports.handler = async function(event:any) {
   const base64 = audioStreamBuffer.toString('base64');
   console.log('base64', base64);
 
-  const body = JSON.stringify({
+  return {
     base64,
     translated
-  });
-
-  return {
-    statusCode: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*", // Avoid block by CORS policy (when fetching from react) because of no 'Access-Control-Allow-Origin' header on the requested resource.
-    },
-    body
-  };
-};
+  }
+});
