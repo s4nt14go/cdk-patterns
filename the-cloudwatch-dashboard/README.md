@@ -234,6 +234,8 @@ There are also [percentile statistics](https://docs.aws.amazon.com/AmazonCloudWa
 
 ## Useful commands
 
+ * `npx cdkp init polly` installs this pattern
+ * `npm run cdk -- destroy -f` destroy pattern without asking
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
