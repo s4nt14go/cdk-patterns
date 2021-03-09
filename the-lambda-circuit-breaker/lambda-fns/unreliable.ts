@@ -1,6 +1,5 @@
-
 'use strict'
-const CircuitBreaker = require('circuitbreaker-lambda')
+const CircuitBreaker = require('./circuitbreaker')
 let message:string
 
 const options = {
@@ -22,20 +21,19 @@ function unreliableFunction () {
   })
 }
 function fallbackFunction () {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     resolve({ data: 'Expensive Fallback Successful' })
     message = 'Fallback'
   })
 }
 
-exports.handler = async (event:any) => {
+exports.handler = async (_event:any) => {
   const circuitBreaker = new CircuitBreaker(unreliableFunction, options)
   await circuitBreaker.fire()
-  const response = {
+  return {
     statusCode: 200,
     body: JSON.stringify({
       message: message
     })
   }
-  return response
 }
