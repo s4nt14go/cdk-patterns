@@ -27,7 +27,9 @@ function fallbackFunction () {
   })
 }
 
-exports.handler = async (_event:any) => {
+exports.handler = async (event:any) => {
+  console.log('event', event);
+  if (event.rawPath === '/favicon.ico') return console.log('Ignore /favicon.ico request'); // To avoid two calls when visiting the url with browser
   const circuitBreaker = new CircuitBreaker(unreliableFunction, options)
   await circuitBreaker.fire()
   return {

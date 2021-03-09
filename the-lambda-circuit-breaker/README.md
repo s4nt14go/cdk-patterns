@@ -1,4 +1,17 @@
-# The Lambda Circuit Breaker
+## UPDATE:
+
+>In this repo I made some changes to the original one, so first go through the [original readme](#original-readme-the-lambda-circuit-breaker) and then come back here.
+
+I factored out the library circuitbreaker-lambda as a plain function, added some logging and removed state HALF. Basically, what this modified pattern does is this:
+* If status is CLOSE, try the unreliable request
+* If status is OPEN and if enough time (`timeout`) hasn't passed from the last attempt, just call the fallback
+* If status is OPEN and if enough time (`timeout`) has passed from the last attempt, try the unreliable request
+
+Every time we have a successful response from the unreliable request `successCount` is incremented while `failureCount` set to zero, while when we receive a failure response `failureCount` is incremented and `successCount` set to zero.
+
+Once we get a `successThreshold` of consecutive successes we set status to CLOSE, while when we receive a `failureThreshold` of consecutive failures we set status to OPEN.
+
+# ORIGINAL README: The Lambda Circuit Breaker
 
 ![architecture](img/arch.png)
 

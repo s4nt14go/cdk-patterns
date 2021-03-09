@@ -30,22 +30,29 @@ module.exports = (function () {
     const data = await this.getState()
     const itemData = data.Item
     if (itemData !== undefined) {
+      console.log('Data got from table', itemData);
       this.state = itemData.circuitState
       this.failureCount = itemData.failureCount
       this.successCount = itemData.successCount
       this.nextAttempt = itemData.nextAttempt
+
+    } else {
+      console.log('No data in table');
     }
+
     if (this.state === 'OPEN') {
-      if (this.nextAttempt <= Date.now()) {
-        this.half()
-      } else {
+      if (this.nextAttempt > Date.now()) {
+        console.log('Time for nextAttempt not elapsed yet, so it will check if fallback exists');
         if (this.fallback) {
+          console.log('Will call fallback and return without calling the unreliable request');
           return this.tryFallback()
         }
+        console.log('No callback set, throw error without calling the unreliable request')
         throw new Error('CircuitBreaker state: OPEN')
       }
     }
     try {
+      console.log('Will try the unreliable request');
       const response = await this.request()
       return this.success(response)
     } catch (err) {
@@ -54,11 +61,13 @@ module.exports = (function () {
   }
 
   _proto.success = async function success (response:any) {
-    if (this.state === 'HALF') {
-      this.successCount++
-      if (this.successCount > this.successThreshold) {
-        this.close()
-      }
+    console.log('Unreliable request successful');
+    this.successCount++
+    if (this.successCount > this.successThreshold) {
+      console.log(`successCount(${this.successCount}) reached to set circuit as CLOSED`);
+      this.state = 'CLOSED';
+    } else {
+      console.log(`successCount(${this.successCount}) still not enough to overwrite circuit as CLOSED`);
     }
     this.failureCount = 0
     await this.updateState('Success')
@@ -66,31 +75,23 @@ module.exports = (function () {
   }
 
   _proto.fail = async function fail (err:any) {
+    console.log('Unreliable request failure');
     this.failureCount++
     if (this.failureCount >= this.failureThreshold) {
-      this.open()
+      console.log(`Many errors received (${this.failureCount}) will set to OPEN`);
+      this.state = 'OPEN'
+      this.nextAttempt = Date.now() + this.timeout
+    } else {
+      console.log(`Just ${this.failureCount} errors received, still don't set to OPEN`);
     }
-    await this.updateState('Failure')
-    if (this.fallback) return this.tryFallback()
-    return err
-  }
-
-  _proto.open = function open () {
-    console.log('CircuitBreaker state: OPEN')
-    this.state = 'OPEN'
-    this.nextAttempt = Date.now() + this.timeout
-  }
-
-  _proto.close = function close () {
-    console.log('CircuitBreaker state: CLOSED')
     this.successCount = 0
-    this.failureCount = 0
-    this.state = 'CLOSED'
-  }
-
-  _proto.half = function half () {
-    console.log('CircuitBreaker state: HALF')
-    this.state = 'HALF'
+    await this.updateState('Failure');
+    console.log('Unreliable request failed, so it will check if fallback exists');
+    if (this.fallback) {
+      console.log('Call fallback after failing');
+      return this.tryFallback()
+    }
+    return err
   }
 
   _proto.tryFallback = async function tryFallback () {
@@ -119,20 +120,23 @@ module.exports = (function () {
 
   _proto.updateState = async function updateState (_action:any) {
     try {
+      const ExpressionAttributeValues = {
+        ':circuitState': this.state,
+        ':failureCount': this.failureCount,
+        ':successCount': this.successCount,
+        ':nextAttempt': this.nextAttempt,
+        ':stateTimestamp': Date.now()
+      };
+      console.log('update table', ExpressionAttributeValues);
+
       const ddbParams = {
         TableName: circuitBreakerTable,
         Key: {
           id: lambdaFunctionName
         },
         UpdateExpression:
-          'set circuitState=:st, failureCount=:fc, successCount=:sc, nextAttempt=:na, stateTimestamp=:ts',
-        ExpressionAttributeValues: {
-          ':st': this.state,
-          ':fc': this.failureCount,
-          ':sc': this.successCount,
-          ':na': this.nextAttempt,
-          ':ts': Date.now()
-        },
+          'set circuitState=:circuitState, failureCount=:failureCount, successCount=:successCount, nextAttempt=:nextAttempt, stateTimestamp=:stateTimestamp',
+        ExpressionAttributeValues,
         ReturnValues: 'UPDATED_NEW'
       }
       return await dynamoDb.update(ddbParams).promise()
