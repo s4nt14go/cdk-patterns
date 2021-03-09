@@ -1,3 +1,8 @@
+## UPDATE:
+
+>In this repo I made some changes to the original one, it may be convenient taking
+a look at the [original readme](#original-readme-polly-pattern) first and then coming back here.
+
 I changed API Gateway from HttpApi to RestApi to protect the endpoint setting throttling and also added a React site where you can try Polly and Translate, [check it out!](http://pollystack-prod-websitedeploywebsitebucket8c75cfa-1dde3ro6aqyc4.s3-website-us-east-1.amazonaws.com)
 <br /><br />
 
