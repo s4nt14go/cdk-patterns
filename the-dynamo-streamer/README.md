@@ -23,6 +23,8 @@ After deployment you will have an API Gateway with one endpint (/InsertItem) tha
 
 ## Useful commands
 
+ * `npx cdkp init the-dynamo-streamer` installs this pattern
+ * `npm run cdk -- destroy -f` destroy pattern without asking
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
