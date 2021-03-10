@@ -15,11 +15,43 @@ This is a variation on [The Simple Webservice](../the-simple-webservice/README.m
 
 After deployment you will have an API Gateway with one endpint (/InsertItem) that takes an application/json payload via POST. It will insert the contents of the message field into DynamoDB where that new event will be streamed to a Lambda that will print the contents to the console. To see the full flow you need to look in the AWS Console and look in DynamoDB and the Lambda Cloudwatch logs
 
-### JSON Payload Format
-`{ "message": "hello" }`
+To test it, send the POST body with field `message`, for example `{ "message": "heya" }`
 
-### Example Request
 ![Postman](https://raw.githubusercontent.com/nideveloper/serverless/master/the-dynamo-streamer/img/request.png)
+<br /><br />
+
+...and you'll receive this event in lambda:
+
+```json5
+{
+    "Records": [
+        {
+            "eventName": "INSERT",
+            "eventSource": "aws:dynamodb",
+            "dynamodb": {
+                "Keys": {
+                    "message": {
+                        "S": "heya"
+                    }
+                },
+                "NewImage": {
+                    "message": {
+                        "S": "heya"
+                    }
+                },
+                "StreamViewType": "NEW_IMAGE"
+            },
+        }
+    ]
+}
+```
+<br />
+
+In the case you want to force an error, send the POST body without field `message`, for example `{}`, and you'll receive:
+<br />
+
+![Error](doc/error.png)
+<br />
 
 ## Useful commands
 

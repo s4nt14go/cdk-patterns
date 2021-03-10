@@ -17,7 +17,7 @@ export class TheDynamoStreamerStack extends cdk.Stack {
       partitionKey: { name: 'message', type: dynamodb.AttributeType.STRING },
       stream: dynamodb.StreamViewType.NEW_IMAGE
     });
-    
+
     /**
      * Lambda Dynamo Stream Subscriber Creation
      */
@@ -48,14 +48,14 @@ export class TheDynamoStreamerStack extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal('apigateway.amazonaws.com')
     });
     table.grantReadWriteData(apigwDynamoRole);
-    
+
     //Because this isn't a proxy integration, we need to define our response model
     const responseModel = gateway.addModel('ResponseModel', {
       contentType: 'application/json',
       modelName: 'ResponseModel',
       schema: { 'schema': apigw.JsonSchemaVersion.DRAFT4, 'title': 'pollResponse', 'type': apigw.JsonSchemaType.OBJECT, 'properties': { 'message': { 'type': apigw.JsonSchemaType.STRING } } }
     });
-    
+
     // We define the JSON Schema for the transformed error response
     const errorResponseModel = gateway.addModel('ErrorResponseModel', {
       contentType: 'application/json',
@@ -88,11 +88,10 @@ export class TheDynamoStreamerStack extends cdk.Stack {
             }
           },
           {
-            // For errors, we check if the response contains the words BadRequest
-            selectionPattern: '^\[BadRequest\].*',
+            selectionPattern: '400',
             statusCode: "400",
             responseTemplates: {
-                'application/json': JSON.stringify({ state: 'error', message: "$util.escapeJavaScript($input.path('$.errorMessage'))" })
+                'application/json': JSON.stringify({ state: 'error', message: "$util.escapeJavaScript($input.path('$'))" })
             },
             responseParameters: {
                 'method.response.header.Content-Type': "'application/json'",
@@ -133,5 +132,9 @@ export class TheDynamoStreamerStack extends cdk.Stack {
           }
         ]
       })
+
+    new cdk.CfnOutput(this, 'restApiId', {
+      value: gateway.restApiId ?? 'Something went wrong with the deploy'
+    });
   }
 }
