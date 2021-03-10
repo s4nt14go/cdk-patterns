@@ -20,6 +20,8 @@ After deployment you will have an api gateway where hitting any endpoint trigger
 
 ## Useful commands
 
+ * `npx cdkp init the-eventbridge-atm` installs this pattern
+ * `npm run cdk -- destroy -f` destroy pattern without asking
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
