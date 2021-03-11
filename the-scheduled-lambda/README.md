@@ -9,6 +9,8 @@ This is an example CDK stack demonstrating how to use AWS EventBridge to invoke 
 More information on schedule expressions for AWS EventBridge to change the run frequency of this project can be found [here](https://docs.aws.amazon.com/eventbridge/latest/userguide/scheduled-events.html).
 
 ## Useful commands
+- `npx cdkp init the-scheduled-lambda` installs this pattern
+- `npm run cdk -- destroy -f` destroy pattern without asking
 - `npm run build` - compile TypeScript to JavaScript
 - `npm run watch` - watch for changes and compile
 - `npm run test` - perform the jest unit tests
