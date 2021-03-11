@@ -18,7 +18,8 @@ If you pass in pineapple or hawaiian you should see the step function flow fail 
 
 
 ## Useful commands
-
+ * `npx cdkp init the-state-machine` installs this pattern
+ * `npm run cdk -- destroy -f` destroy pattern without asking
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
