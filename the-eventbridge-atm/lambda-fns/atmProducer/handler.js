@@ -2,7 +2,7 @@ const AWS = require('aws-sdk')
 AWS.config.region = process.env.AWS_REGION || 'us-east-1'
 const eventbridge = new AWS.EventBridge()
 
-exports.lambdaHandler = async (event, context) => {
+exports.lambdaHandler = async (_event, _context) => {
 
   const { params } = require('./events.js')
 
@@ -18,6 +18,6 @@ exports.lambdaHandler = async (event, context) => {
     headers: {
       "Content-Type": "text/html"
     },
-    body: 'You have sent the events to EventBridge!'
+    body: JSON.stringify(result),
   };
 }

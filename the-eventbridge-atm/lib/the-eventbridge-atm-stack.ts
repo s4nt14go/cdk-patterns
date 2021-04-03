@@ -4,6 +4,8 @@ import iam = require('@aws-cdk/aws-iam');
 import events = require('@aws-cdk/aws-events');
 import events_targets = require('@aws-cdk/aws-events-targets');
 import apigw = require('@aws-cdk/aws-apigateway');
+import * as sqs from '@aws-cdk/aws-sqs';
+import destinations = require('@aws-cdk/aws-lambda-destinations');
 
 export class TheEventbridgeAtmStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -27,6 +29,22 @@ export class TheEventbridgeAtmStack extends cdk.Stack {
     atmProducerLambda.addToRolePolicy(eventPolicy);
 
     /**
+     * Let's create our own Event Bus for this rather than using default
+     */
+    const bus = new events.EventBus(this, 'TheEventbridgeAtmBus', {
+      eventBusName: 'the-eventbridge-atm'
+    });
+
+    bus.archive('MyArchive', {
+      archiveName: 'TheEventbridgeAtmBusArchive',
+      description: 'TheEventbridgeAtmtBus Archive',
+      eventPattern: {
+        account: [this.account],
+      },
+      retention: cdk.Duration.days(365),
+    });
+
+    /**
      * Approved Transaction Consumer
      */
     const atmConsumer1Lambda = new lambda.Function(this, 'atmConsumer1Lambda', {
@@ -36,6 +54,7 @@ export class TheEventbridgeAtmStack extends cdk.Stack {
     });
 
     const atmConsumer1LambdaRule = new events.Rule(this, 'atmConsumer1LambdaRule', {
+      eventBus: bus,
       description: 'Approved transactions',
       eventPattern: {
         source: ['custom.myATMapp'],
@@ -43,7 +62,7 @@ export class TheEventbridgeAtmStack extends cdk.Stack {
         detail: {
           result: ["approved"]
         }
-      }
+      },
     });
 
     atmConsumer1LambdaRule.addTarget(new events_targets.LambdaFunction(atmConsumer1Lambda));
@@ -58,6 +77,8 @@ export class TheEventbridgeAtmStack extends cdk.Stack {
     });
 
     const atmConsumer2LambdaRule = new events.Rule(this, 'atmConsumer2LambdaRule', {
+      eventBus: bus,
+      description: "'NY-' transactions",
       eventPattern: {
         source: ['custom.myATMapp'],
         detailType: ['transaction'],
@@ -74,13 +95,17 @@ export class TheEventbridgeAtmStack extends cdk.Stack {
     /**
      * Not Approved Consumer
      */
+    const dlq = new sqs.Queue(this, 'DeadLetterQueue');
     const atmConsumer3Lambda = new lambda.Function(this, 'atmConsumer3Lambda', {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset('lambda-fns/atmConsumer'),
-      handler: 'handler.case3Handler'
+      handler: 'handler.case3Handler',
+      onFailure: new destinations.SqsDestination(dlq),
     });
 
     const atmConsumer3LambdaRule = new events.Rule(this, 'atmConsumer3LambdaRule', {
+      description: "'anything-but: approved' transactions",
+      eventBus: bus,
       eventPattern: {
         source: ['custom.myATMapp'],
         detailType: ['transaction'],
@@ -101,6 +126,6 @@ export class TheEventbridgeAtmStack extends cdk.Stack {
     new apigw.LambdaRestApi(this, 'Endpoint', {
       handler: atmProducerLambda
     });
-  
+
   }
 }

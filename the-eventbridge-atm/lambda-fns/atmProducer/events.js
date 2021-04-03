@@ -16,11 +16,11 @@
 // You can send up to 10 events to Amazon EventBridge simulataneously.
 
 module.exports.params = {
-  Entries: [ 
+  Entries: [
     {
       // Event envelope fields
       Source: 'custom.myATMapp',
-      EventBusName: 'default',
+      EventBusName: 'the-eventbridge-atm',
       DetailType: 'transaction',
       Time: new Date(),
 
@@ -39,7 +39,7 @@ module.exports.params = {
     {
       // Event envelope fields
       Source: 'custom.myATMapp',
-      EventBusName: 'default',
+      EventBusName: 'the-eventbridge-atm',
       DetailType: 'transaction',
       Time: new Date(),
 
@@ -58,7 +58,7 @@ module.exports.params = {
     {
       // Event envelope fields
       Source: 'custom.myATMapp',
-      EventBusName: 'default',
+      EventBusName: 'the-eventbridge-atm',
       DetailType: 'transaction',
       Time: new Date(),
 
@@ -72,6 +72,6 @@ module.exports.params = {
         cardPresent: true,
         remainingFunds: 5.77
       })
-    }    
+    }
   ]
 }

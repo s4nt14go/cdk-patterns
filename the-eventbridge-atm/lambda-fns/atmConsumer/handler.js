@@ -13,4 +13,5 @@ exports.case2Handler = async (event) => {
 exports.case3Handler = async (event) => {
   console.log('--- Unapproved transactions ---')
   console.log(JSON.stringify(event, null, 2))
+  throw Error('Error threw!');
 }
