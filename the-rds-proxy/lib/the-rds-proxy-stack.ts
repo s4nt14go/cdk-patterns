@@ -2,7 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as rds from '@aws-cdk/aws-rds';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
-const ssm = require('@aws-cdk/aws-ssm');
 import * as lambda from '@aws-cdk/aws-lambda';
 import apigw = require('@aws-cdk/aws-apigatewayv2');
 import integrations = require('@aws-cdk/aws-apigatewayv2-integrations');
@@ -15,7 +14,7 @@ export class TheRdsProxyStack extends cdk.Stack {
     const vpc = new ec2.Vpc(this, 'Vpc', {
       maxAzs: 2, // Default is all AZs in the region
     });
-    
+
     // We need this security group to add an ingress rule and allow our lambda to query the proxy
     let lambdaToRDSProxyGroup = new ec2.SecurityGroup(this, 'Lambda to RDS Proxy Connection', {
       vpc
@@ -42,11 +41,6 @@ export class TheRdsProxyStack extends cdk.Stack {
       }
     });
 
-    new ssm.StringParameter(this, 'DBCredentialsArn', {
-      parameterName: 'rds-credentials-arn',
-      stringValue: databaseCredentialsSecret.secretArn,
-    });
-
     // MySQL DB Instance (delete protection turned off because pattern is for learning.)
     // re-enable delete protection for a real implementation
     const rdsInstance = new rds.DatabaseInstance(this, 'DBInstance', {
@@ -68,18 +62,18 @@ export class TheRdsProxyStack extends cdk.Stack {
         vpc,
         securityGroups: [dbConnectionGroup]
     });
-    
+
     // Workaround for bug where TargetGroupName is not set but required
     let targetGroup = proxy.node.children.find((child:any) => {
       return child instanceof rds.CfnDBProxyTargetGroup
     }) as rds.CfnDBProxyTargetGroup
 
     targetGroup.addPropertyOverride('TargetGroupName', 'default');
-    
+
     // Lambda to Interact with RDS Proxy
     const rdsLambda = new lambda.Function(this, 'rdsProxyHandler', {
       runtime: lambda.Runtime.NODEJS_12_X,
-      code: lambda.Code.asset('lambda-fns/rds'), 
+      code: lambda.Code.asset('lambda-fns/rds'),
       handler: 'rdsLambda.handler',
       vpc: vpc,
       securityGroups: [lambdaToRDSProxyGroup],

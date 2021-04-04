@@ -87,6 +87,33 @@ Any url you hit on this gateway will integrate with the Lambda Function
 
 ## Testing The Pattern
 
+To be able to deploy this pattern, add this inline policy to the IAM user you use for deployment:
+```json5
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/*",
+            "Condition": {
+                "StringLike": {
+                    "iam:AWSServiceName": "rds.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:AttachRolePolicy",
+                "iam:PutRolePolicy"
+            ],
+            "Resource": "arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/*"
+        }
+    ]
+}
+```
+
 After you deploy this pattern you will have an API Gateway HTTP API where any url you hit gets routed to a Lambda function that inserts the URL path you hit into our MySQL table.
 
 Simply open the url printed out in the deployment logs for our HTTP API in a browser and you should see a table containing all the urls you have hit. Try hitting a couple of different urls and watch the table grow.
