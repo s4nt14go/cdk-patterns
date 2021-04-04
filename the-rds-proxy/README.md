@@ -92,7 +92,8 @@ After you deploy this pattern you will have an API Gateway HTTP API where any ur
 Simply open the url printed out in the deployment logs for our HTTP API in a browser and you should see a table containing all the urls you have hit. Try hitting a couple of different urls and watch the table grow.
 
 ## Useful commands
-
+ * `npx cdkp init the-rds-proxy` installs this pattern
+ * `npm run cdk -- destroy -f` destroy pattern without asking
  * `npm run build`   compile typescript to js
  * `npm run watch`   watch for changes and compile
  * `npm run test`    perform the jest unit tests
