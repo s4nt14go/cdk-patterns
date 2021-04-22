@@ -11,7 +11,8 @@ export class TheLambdaCircuitBreakerStack extends cdk.Stack {
     //DynamoDB Table To Hold Circuitbreaker State
     const table = new dynamodb.Table(this, 'CircuitBreakerTable', {
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
-      removalPolicy: cdk.RemovalPolicy.DESTROY
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     // Create a Lambda Function with unreliable code

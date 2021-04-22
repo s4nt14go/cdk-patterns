@@ -15,7 +15,8 @@ export class TheScalableWebhookStack extends cdk.Stack {
      */
     const table = new dynamodb.Table(this, 'Messages', {
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING }, //the key being id means we squash duplicate sqs messages
-      removalPolicy: cdk.RemovalPolicy.DESTROY
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     /**

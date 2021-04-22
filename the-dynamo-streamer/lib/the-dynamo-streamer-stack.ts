@@ -15,7 +15,9 @@ export class TheDynamoStreamerStack extends cdk.Stack {
      */
     const table = new dynamodb.Table(this, 'TheDynamoStreamer', {
       partitionKey: { name: 'message', type: dynamodb.AttributeType.STRING },
-      stream: dynamodb.StreamViewType.NEW_IMAGE
+      stream: dynamodb.StreamViewType.NEW_IMAGE,
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     /**
