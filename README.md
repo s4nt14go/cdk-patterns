@@ -27,4 +27,7 @@ With all the AWS offerings it's useful know where they stand
 <p align="center">
   <img src="img/spectrum_2017.png" />
 </p><br />
+<p align="center">
+  <img src="img/categories.png" />
+</p><br />
 
