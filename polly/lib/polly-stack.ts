@@ -53,5 +53,7 @@ export class PollyStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'api.url', {
       value: api.url ?? 'Something went wrong with the deploy'
     });
+
+    cdk.Tags.of(this).add("project", "polly");
   }
 }
