@@ -1,14 +1,30 @@
-const dev = {
-  API: process.env.REACT_APP_dev_API,
-};
+let config;
+switch (process.env.REACT_APP_STAGE) {
 
-const prod = {
-  API: process.env.REACT_APP_prod_API,
-};
+  case 'prod':
+    if (!process.env.REACT_APP_prod_API) {
+      console.log('process.env', process.env);
+      throw Error('process.env.REACT_APP_prod_API is not set');
+    }
+    config = {
+      API: process.env.REACT_APP_prod_API,
+    }
+    break;
 
-const config = process.env.REACT_APP_STAGE === 'prod'
-  ? prod
-  : dev;
+  case 'dev':
+    if (!process.env.REACT_APP_dev_API) {
+      console.log('process.env', process.env);
+      throw Error('process.env.REACT_APP_dev_API is not set');
+    }
+    config = {
+      API: process.env.REACT_APP_dev_API,
+    };
+    break;
+
+  default:
+    console.log('process.env', process.env);
+    throw Error(`process.env.REACT_APP_STAGE equals ${process.env.REACT_APP_STAGE}, which is not supported.`);
+}
 
 // eslint-disable-next-line
 export default {
