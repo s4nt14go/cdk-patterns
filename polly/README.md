@@ -3,19 +3,71 @@
 >In this repo I made some changes to the original one, it may be convenient taking
 a look at the [original readme](#original-readme-polly-pattern) first and then coming back here.
 
-I changed API Gateway from HttpApi to RestApi to protect the endpoint setting throttling and also added a React site where you can try Polly and Translate, [check it out!](http://pollystack-prod-websitedeploywebsitebucket8c75cfa-1dde3ro6aqyc4.s3-website-us-east-1.amazonaws.com)
+I changed API Gateway from HttpApi to RestApi to protect the endpoint setting throttling and also added a React site where you can try Polly and Translate, [check it out!](https://8k6h.short.gy/polly)
 <br /><br />
 
-<a href="http://pollystack-prod-websitedeploywebsitebucket8c75cfa-1dde3ro6aqyc4.s3-website-us-east-1.amazonaws.com" align="center">
+<a href="https://8k6h.short.gy/polly" align="center">
   <img src="img/react-app.png" />
 </a><br /><br /><br />
 
-In case you want to modify your React app remember doing:
+### Instructions
+
+Use Node 14 version, using [nvm](https://github.com/nvm-sh/nvm) you can:
+
+```
+# set Node 14 in current terminal
+nvm use 14
+# set Node 14 as default (new terminals will use 14)
+nvm alias default 14
+```
+
+Install dependencies in this folder:
+
+```shell
+npm ci
+```
+
+The deployment relies on some env var, so it's easier to deploy on one stage or another, for example `dev` and `prod` stages. As an example, let's do a walkthrough about how create a `prod` stage. Create a `.env` file with this data:
+
+```dotenv
+STAGE=prod
+```
+
+Install dependencies and build inside `react-app` folder.
+
+```shell
+cd react-app
+npm run build
+cd ..
+```
+
+Before deploying the project, you should have run:
+
+```shell
+npm run cdk -- bootstrap
+```
+
+...once the former is done, do successive deploys through:
+
+```shell
+npm run deploy
+```
+
+As we need to set the api url in the react app, after the first deployment, create a file `react-app/.env` with the deployment data:
+
+```dotenv
+REACT_APP_STAGE=prod
+REACT_APP_prod_API=https://<api-id>.execute-api.<region>.amazonaws.com/prod
+```
+
+Build again the react app so it picks up the above env vars:
+
 ```shell
 cd react-app
 npm run build
 ```
-...before redeploying with cdk.
+
+> In case you want to modify your React app remember doing this last step, before redeploying the project.
 
 # ORIGINAL README: Polly Pattern
 
