@@ -12,3 +12,4 @@ cdk.out
 
 !react-app/**
 /.env
+/setAwsProfile.sh
